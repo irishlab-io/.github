@@ -17,6 +17,6 @@ A small consulting team help people increase their DevOps productivity.
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) ![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white) ![Rancher](https://img.shields.io/badge/rancher-%230075A8.svg?style=for-the-badge&logo=rancher&logoColor=white)
 </div>
 
-## Get In Touch @[irishLab.io](https://about.irishlab.io)
+## Get In Touch @[irishlab.io](https://blog.irishlab.io/)
 
 Interested in collaborating or discussing opportunities? I'd love to connect!
