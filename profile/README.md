@@ -4,6 +4,16 @@
 
 A small consulting team help people increase their DevOps productivity.
 
+## Repo Dashboard
+
+| Repository                                            | CI                                                                                                                                                                                    |
+|-----------------------------------------------------  |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  |
+| [admin](https://github.com/irishlab-io/admin)         | [![Continous Integration - Main](https://github.com/irishlab-io/admin/actions/workflows/main.yml/badge.svg)](https://github.com/irishlab-io/admin/actions/workflows/main.yml)         |
+| [dotfiles](https://github.com/irish1986/dotfiles)     | [![Continous Integration - Main](https://github.com/irish1986/dotfiles/actions/workflows/main.yml/badge.svg)](https://github.com/irish1986/dotfiles/actions/workflows/main.yml)       |
+| [httpenv](https://github.com/irishlab-io/httpenv)     | [![Continous Integration - Main](https://github.com/irishlab-io/httpenv/actions/workflows/main.yml/badge.svg)](https://github.com/irishlab-io/httpenv/actions/workflows/main.yml)     |
+| [irishlab](https://github.com/irishlab-io/irishlab)   | [![Continous Integration - Main](https://github.com/irishlab-io/irishlab/actions/workflows/main.yml/badge.svg)](https://github.com/irishlab-io/irishlab/actions/workflows/main.yml)   |
+| [nginx-hw](https://github.com/irishlab-io/nginx-hw)   | [![Continous Integration - Main](https://github.com/irishlab-io/nginx-hw/actions/workflows/main.yml/badge.svg)](https://github.com/irishlab-io/nginx-hw/actions/workflows/main.yml)   |
+
 ## Tech Stack
 
 <div align="center">
