@@ -1,4 +1,4 @@
-# Welcome to irishlab.io
+# Welcome to [irishlab.io](https://www.irishlab.io/)
 
 ## Who are we ?
 
@@ -8,8 +8,7 @@ A small consulting team help people increase their DevOps productivity.
 
 | Repository                                            | CI                                                                                                                                                                                    |
 |-----------------------------------------------------  |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  |
-| [admin](https://github.com/irishlab-io/admin)         | [![Continous Integration - Main](https://github.com/irishlab-io/admin/actions/workflows/main.yml/badge.svg)](https://github.com/irishlab-io/admin/actions/workflows/main.yml)         |
-| [dotfiles](https://github.com/irish1986/dotfiles)     | [![Continous Integration - Main](https://github.com/irish1986/dotfiles/actions/workflows/main.yml/badge.svg)](https://github.com/irish1986/dotfiles/actions/workflows/main.yml)       |
+| [.github](https://github.com/irishlab-io/.github)         | [![Continous Integration - Main](https://github.com/irishlab-io/.github/actions/workflows/main.yml/badge.svg)](https://github.com/irishlab-io/.github/actions/workflows/main.yml)         |
 | [httpenv](https://github.com/irishlab-io/httpenv)     | [![Continous Integration - Main](https://github.com/irishlab-io/httpenv/actions/workflows/main.yml/badge.svg)](https://github.com/irishlab-io/httpenv/actions/workflows/main.yml)     |
 | [irishlab](https://github.com/irishlab-io/irishlab)   | [![Continous Integration - Main](https://github.com/irishlab-io/irishlab/actions/workflows/main.yml/badge.svg)](https://github.com/irishlab-io/irishlab/actions/workflows/main.yml)   |
 | [nginx-hw](https://github.com/irishlab-io/nginx-hw)   | [![Continous Integration - Main](https://github.com/irishlab-io/nginx-hw/actions/workflows/main.yml/badge.svg)](https://github.com/irishlab-io/nginx-hw/actions/workflows/main.yml)   |
@@ -27,6 +26,6 @@ A small consulting team help people increase their DevOps productivity.
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) ![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white) ![Rancher](https://img.shields.io/badge/rancher-%230075A8.svg?style=for-the-badge&logo=rancher&logoColor=white)
 </div>
 
-## Get In Touch @[irishlab.io](https://blog.irishlab.io/)
+## Get In Touch @[irishlab.io](https://www.irishlab.io/)
 
 Interested in collaborating or discussing opportunities? I'd love to connect!

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "dependencyDashboardTitle": "Renovate Dashboard",
+  "extends": [
+    "config:recommended",
+    ":disableRateLimiting",
+    ":timezone(America/New_York)",
+    ":semanticCommits"
+  ],
+  "pre-commit": {
+    "enabled": true
+  }
+}

@@ -1,0 +1,46 @@
+---
+name: Reusable - Hello World
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      comments:
+        description: Simple string for testing purpose
+        type: string
+        required: false
+        default: test1234
+      enable:
+        description: Simple boolean flag for testing purpose
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  hello-world:
+    name: Hello World - A testing workflow
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Run a one-line script
+        run: echo Hello, world!
+        shell: bash
+
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
+        shell: bash
+
+      - name: Run a one-line script with boolean inputs
+        if: inputs.enable
+        run: echo Hello, world enabled!
+        shell: bash
+
+      - name: Run a one-line script with string inputs
+        if: inputs.enable
+        run: echo Hello, world ${{ inputs.comments }} !
+        shell: bash

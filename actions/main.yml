@@ -1,0 +1,23 @@
+---
+name: Continous Integration - Main
+
+on: # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  hello-world:
+    needs: secret
+    name: Call Hello World
+    uses: irishlab-io/admin/.github/workflows/reusable-hello-world.yml@main
+    with:
+      comments: "4321tset"
+      enable: false

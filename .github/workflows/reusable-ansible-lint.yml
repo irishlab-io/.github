@@ -1,0 +1,44 @@
+---
+name: Reusable - Ansible Lint
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      configuration_file:
+        description: Ansible-Lint configuration
+        required: false
+        default: ""
+        type: string
+      setup_python:
+        description: Setup Python automatically
+        required: false
+        default: true
+        type: boolean
+      requirements_file:
+        description: Ansible Galaxy requirements files
+        required: false
+        default: ""
+        type: string
+      working_directory:
+        description: Project directory
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  ansible-lint:
+    name: Run ansible-lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@v24.12.2
+        with:
+          args: ${{ inputs.configuration_file }}
+          setup_python: ${{ inputs.setup_python }}
+          requirements_file: ${{ inputs.requirements_file }}
+          working_directory: ${{ inputs.working_directory }}
