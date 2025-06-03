@@ -14,13 +14,13 @@ jobs:
 
   secret:
     name: Call Secret Scanning
-    uses: irishlab-io/admin/.github/workflows/reusable-secret.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-secret.yml@main
     secrets: inherit
 
   hello-world:
     needs: secret
     name: Call Hello World
-    uses: irishlab-io/admin/.github/workflows/reusable-hello-world.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
     with:
       comments: "4321tset"
       enable: false
