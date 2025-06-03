@@ -1,5 +1,5 @@
 ---
-name: Continous Integration - Pull Request
+name: CI - Pull Request
 
 on: # yamllint disable-line rule:truthy
   pull_request:
@@ -19,11 +19,3 @@ jobs:
     name: Call Secret Scanning
     uses: irishlab-io/.github/.github/workflows/reusable-secret.yml@main
     secrets: inherit
-
-  hello-world:
-    needs: secret
-    name: Call Hello World
-    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
-    with:
-      comments: "4321tset"
-      enable: false
