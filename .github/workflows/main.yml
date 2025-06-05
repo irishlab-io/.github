@@ -26,6 +26,14 @@ jobs:
     uses: irishlab-io/.github/.github/workflows/reusable-secret.yml@main
     secrets: inherit
 
+  ansible:
+    name: Call Docker Build
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
+
+    needs:
+      - pre-commit
+      - secret
+
   docker-build:
     name: Call Docker Build
     uses: irishlab-io/.github/.github/workflows/reusable-docker-build.yml@main
@@ -42,4 +50,28 @@ jobs:
     with:
       context: "./demo/docker/"
       image-names: |
-        ghcr.io/irishlab-io-${{ github.repository }}
+        ghcr.io/irishlab-io/demo-docker
+
+  k8s:
+    name: Call Docker Build
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
+
+    needs:
+      - pre-commit
+      - secret
+
+  python:
+    name: Call Docker Build
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
+
+    needs:
+      - pre-commit
+      - secret
+
+  terraform:
+    name: Call Docker Build
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
+
+    needs:
+      - pre-commit
+      - secret
