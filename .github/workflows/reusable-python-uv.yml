@@ -8,7 +8,7 @@ on: # yamllint disable-line rule:truthy
         description: Python version to use
         type: string
         required: false
-        default: "pyproject.toml"
+        default: ".python-version"
       uv_version:
         description: UV version to use
         type: string
@@ -46,7 +46,7 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v5.6.0
         with:
-          python-version-file: ${{ inputs.python_file || '.python-version' }}
+          python-version-file: ${{ inputs.python_file || 'pyproject.toml' }}
 
       - name: Restore uv cache
         uses: actions/cache@v4
