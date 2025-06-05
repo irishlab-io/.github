@@ -1,5 +1,5 @@
 ---
-name: GitOps PR
+name: Reusable - GitOps PR
 
 # REUSABLE WORKFLOW with INPUTS
 # to keep this workflow simple, assumptions are made:

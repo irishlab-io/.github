@@ -1,5 +1,5 @@
 ---
-name: Update flux
+name: Reusable - Update flux
 
 on: # yamllint disable-line rule:truthy
   workflow_dispatch:

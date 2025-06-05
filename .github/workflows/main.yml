@@ -25,3 +25,21 @@ jobs:
     name: Call Secret Scanning
     uses: irishlab-io/.github/.github/workflows/reusable-secret.yml@main
     secrets: inherit
+
+  docker-build:
+    name: Call Docker Build
+    uses: irishlab-io/.github/.github/workflows/reusable-docker-build.yml@main
+
+    needs:
+      - pre-commit
+      - secret
+
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+
+    with:
+      context: "./demo/docker/"
+      image-names: |
+        ghcr.io/${{ github.repository }}
