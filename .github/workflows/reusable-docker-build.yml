@@ -20,6 +20,10 @@ on: # yamllint disable-line rule:truthy
         required: false
         default: false
         type: boolean
+      build-args:
+        description: Build arguments to pass to the Docker build
+        required: false
+        type: string
       comment-enable:
         description: Create a PR comment with image tags and labels
         required: false
@@ -93,7 +97,7 @@ jobs:
 
     name: Docker - Build & Push
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 15
 
     outputs:
       image-tag: ${{ steps.image-tag.outputs.image-tag }}
@@ -136,6 +140,7 @@ jobs:
           file: ${{ inputs.file }}
           target: ${{ inputs.target }}
           builder: ${{ steps.buildx.outputs.name }}
+          build-args: ${{ inputs.build-args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           push: ${{ inputs.push }}

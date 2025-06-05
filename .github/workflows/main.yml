@@ -54,7 +54,6 @@ jobs:
       platforms: |
           linux/amd64
           linux/arm64
-      push: false
 
   python-uv:
     name: Run Unit Tests & Integration Tests
