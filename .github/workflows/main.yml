@@ -84,7 +84,7 @@ jobs:
   sast:
     needs:
       - pre-commit
-    name: Call Static Application Security Testing
+    name: Placeholder - Static Application Security Testing
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
