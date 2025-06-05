@@ -71,6 +71,7 @@ on: # yamllint disable-line rule:truthy
           type=raw,value=nightly-${{ github.run_id }},enable=${{github.event.schedule  == 'schedule'}},priority=200
           type=ref,event=pr,priority=200
           type=ref,event=tag,priority=200
+          type=sha,value={{sha}},enable={{is_default_branch}},priority=300
       target:
         description: Build stage to target
         required: false
