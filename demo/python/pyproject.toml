@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "ciwithfedora"
+version = "0.1.0"
+description = "Python CI on Fedora with GitHub Actions. Tutorial article for Fedoramagazine.org."
+authors = [""]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+tox = "^4.26.0"
+pytest = "^8.3.5"
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
