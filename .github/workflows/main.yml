@@ -56,18 +56,40 @@ jobs:
           linux/arm64
       push: false
 
-  python-poetry:
-    name: Call Python Poetry
-    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
-
-    needs:
-      - pre-commit
-      - secret
-
   python-uv:
-    name: Call Python UV
-    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
+    name: Run Unit Tests & Integration Tests
+    uses: irishlab-io/.github/.github/workflows/reusable-python-uv.yml@main
+
+    with:
+      working_directory: "demo/python"
 
     needs:
-      - pre-commit
       - secret
+      - sca
+      - sast
+
+  sca:
+    needs:
+      - pre-commit
+    name: Placeholder - Software Composition Analysis
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+
+      - name: Run SCA
+        run: echo Software Composition Analysis
+        shell: bash
+
+  sast:
+    needs:
+      - pre-commit
+    name: Call Static Application Security Testing
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+
+      - name: Run SAST
+        run: echo Static Application Security Testing
+        shell: bash

@@ -47,7 +47,7 @@ jobs:
 
       - name: Test with pytest
         run: |
-          uv run pytest tests --cov=src
+          uv run pytest
 
       - name: Minimize uv cache
         run: |
