@@ -27,7 +27,7 @@ jobs:
     secrets: inherit
 
   ansible:
-    name: Call Docker Build
+    name: Call AAnsible Lint
     uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
 
     needs:
@@ -51,17 +51,21 @@ jobs:
       context: "./demo/docker/"
       image-names: |
         ghcr.io/irishlab-io/demo-docker
+      platforms: |
+          linux/amd64
+          linux/arm64
+      push: false
 
-  k8s:
-    name: Call Docker Build
+  python-poetry:
+    name: Call Python Poetry
     uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
 
     needs:
       - pre-commit
       - secret
 
-  python:
-    name: Call Docker Build
+  python-uv:
+    name: Call Python UV
     uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
 
     needs:

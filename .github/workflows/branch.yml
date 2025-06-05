@@ -22,3 +22,31 @@ jobs:
     name: Call Secret Scanning
     uses: irishlab-io/.github/.github/workflows/reusable-secret.yml@main
     secrets: inherit
+
+  ansible:
+    name: Call AAnsible Lint
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
+
+    needs:
+      - secret
+
+  python-poetry:
+    name: Call Python Poetry
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
+
+    needs:
+      - secret
+
+  python-uv:
+    name: Call Python UV
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
+
+    needs:
+      - secret
+
+  terraform:
+    name: Call Docker Build
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
+
+    needs:
+      - secret
