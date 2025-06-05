@@ -42,4 +42,4 @@ jobs:
     with:
       context: "./demo/docker/"
       image-names: |
-        ghcr.io/${{ github.repository }}
+        ghcr.io/irishlab-io-${{ github.repository }}
