@@ -9,6 +9,16 @@ on: # yamllint disable-line rule:truthy
         type: string
         required: false
         default: ".python-version"
+      python_version:
+        description: Python version to use
+        type: string
+        required: false
+        default: "3.13"
+      ruff_version:
+        description: Ruff version to use
+        type: string
+        required: false
+        default: "0.8.0"
       uv_version:
         description: UV version to use
         type: string
@@ -35,7 +45,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
-      - name: Install uv
+      - name: Install UV
         uses: astral-sh/setup-uv@v6.1.0
         with:
           enable-cache: true
@@ -46,9 +56,10 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v5.6.0
         with:
-          python-version-file: ${{ inputs.python_file || 'pyproject.toml' }}
+          python-version: ${{ inputs.python_version || '3.13' }}
+          # python-version-file: ${{ inputs.python_file || 'pyproject.toml' }}
 
-      - name: Restore uv cache
+      - name: Restore UV cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/uv-cache
@@ -61,10 +72,16 @@ jobs:
         run: |
           uv sync --all-extras --dev --frozen
 
-      - name: Test with pytest
+      - name: Install dependencies
+        uses: astral-sh/ruff-action@v3.4.0
+        with:
+          version: ${{ inputs.ruff_version }}
+          args: check
+
+      - name: Pytest - Run Unit Test
         run: |
           uv run pytest
 
-      - name: Minimize uv cache
+      - name: Minimize UV cache
         run: |
           uv cache prune --ci
