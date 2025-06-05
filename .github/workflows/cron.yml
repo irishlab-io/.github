@@ -24,7 +24,7 @@ jobs:
     secrets: inherit
 
   ansible:
-    name: Call AAnsible Lint
+    name: Call Ansible Lint
     uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
 
     needs:
@@ -63,14 +63,6 @@ jobs:
 
   python-uv:
     name: Call Python UV
-    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
-
-    needs:
-      - pre-commit
-      - secret
-
-  terraform:
-    name: Call Docker Build
     uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
 
     needs:
