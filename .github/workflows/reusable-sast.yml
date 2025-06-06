@@ -6,13 +6,13 @@ on: # yamllint disable-line rule:truthy
     secrets:
       TAILSCALE_AUTHKEY:
         description: Tailscale Auth Key
-        required: false
+        required: true
       SONAR_TOKEN:
         description: SonarQube Token
-        required: false
+        required: true
       SONAR_HOST_URL:
         description: SonarQube Host URL
-        required: false
+        required: true
 
 jobs:
   sonarqube:
@@ -30,6 +30,9 @@ jobs:
         uses: tailscale/github-action@v3.2.2
         with:
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tags: "tag:ci"
+          version: "latest"
+          use-cache: "true"
 
       - name: Run SAST - SonarQube
         uses: SonarSource/sonarqube-scan-action@v5.2.0
