@@ -6,13 +6,13 @@ on: # yamllint disable-line rule:truthy
     secrets:
       TAILSCALE_AUTHKEY:
         description: Tailscale Auth Key
-        required: true
+        required: false
       SONAR_TOKEN:
         description: SonarQube Token
-        required: true
+        required: false
       SONAR_HOST_URL:
         description: SonarQube Host URL
-        required: true
+        required: false
 
 jobs:
   sonarqube:
