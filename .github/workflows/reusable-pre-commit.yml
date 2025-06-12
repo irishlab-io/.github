@@ -12,7 +12,7 @@ on: # yamllint disable-line rule:truthy
       skips:
         description: Pre-Commit Skip
         required: false
-        default: ""
+        default: "true"
         type: string
 
 
