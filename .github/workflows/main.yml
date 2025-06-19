@@ -55,6 +55,13 @@ jobs:
           linux/amd64
           linux/arm64
 
+  docker-scan:
+    name: Call Docker Scan
+    uses: irishlab-io/.github/.github/workflows/reusable-docker-scan.yml@main
+
+    needs:
+      - docker-build
+
   python-uv:
     name: Run Unit Tests & Integration Tests
     uses: irishlab-io/.github/.github/workflows/reusable-python-uv.yml@main

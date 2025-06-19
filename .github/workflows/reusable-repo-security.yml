@@ -1,0 +1,23 @@
+---
+name: Reusable - Repository Misconfigurations
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+
+jobs:
+  pre-commit:
+    name: Run poutine
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: poutine - GitHub Actions SAST
+        uses: boostsecurityio/poutine-action@main
+
+      - name: Upload poutine SARIF file
+        uses: github/codeql-action/upload-sarif@v3.24.10
+        with:
+          sarif_file: results.sarif

@@ -1,0 +1,46 @@
+---
+name: Reusable - Docker Scan
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      attest-enable:
+        description: Create an attestion build provenance with image tags and labels
+        required: false
+        default: false
+        type: boolean
+      image-names:
+        description: A list of the account/repo names for docker build to push to
+        required: false
+        type: string
+        default: |
+          ghcr.io/${{ github.repository }}
+
+    outputs:
+      image-tag:
+        description: "single-use image tag for GHA runs"
+        value: ${{ jobs.docker-build-push.outputs.image-tag }}
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+
+  docker-build-push:
+
+    name: Docker - Build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    outputs:
+      image-tag: ${{ steps.image-tag.outputs.image-tag }}
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v3.6.0

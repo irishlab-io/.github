@@ -1,0 +1,18 @@
+---
+- name: Setup
+  hosts:
+    - svr
+    - web
+  become: true
+
+  pre_tasks:
+    - name: Ping machine
+      ansible.builtin.ping:
+
+  roles:
+    - nginx
+
+  post_tasks:
+    - name: Status message
+      ansible.builtin.debug:
+        msg: Playbook ran without any issue.

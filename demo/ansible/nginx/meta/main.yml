@@ -1,0 +1,24 @@
+---
+galaxy_info:
+  author: Simon Harvey
+  description: Installs Nginx and configures a minimal test webserver
+  company: Irishlab.io
+  license: MIT License
+  role_name: nginx
+
+  min_ansible_version: "2.1"
+
+  platforms:
+  - name: Ubuntu
+    versions:
+      - focal
+      - jammy
+      - noble
+
+  galaxy_tags:
+    - nginx
+    - webserver
+    - development
+    - test
+
+dependencies: []

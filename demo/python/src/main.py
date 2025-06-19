@@ -1,16 +1,13 @@
-def add(a, b):
-    return a + b
+import logging
+
+import calculator
 
 
-def subtract(a, b):
-    return a - b
+def main():
+    logging.info("Hello from app!")
+    logging.info(calculator.add(1, 2))
+    logging.info(calculator.subtract(5, 3))
 
 
-def multiply(a, b):
-    return a * b
-
-
-def divide(a, b):
-    if b == 0:
-        raise ValueError("Cannot divide by zero")
-    return a / b
+if __name__ == "__main__":
+    main()

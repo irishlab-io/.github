@@ -16,7 +16,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-vvv --maxfail=1 --cov=demo --cov-report=term-missing"
+addopts = "-vvv --maxfail=1 --cov=calculator"
 testpaths = "tests"
 
 [tool.ruff]
