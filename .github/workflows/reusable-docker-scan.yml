@@ -16,11 +16,6 @@ on: # yamllint disable-line rule:truthy
         default: |
           ghcr.io/${{ github.repository }}
 
-    outputs:
-      image-tag:
-        description: "single-use image tag for GHA runs"
-        value: ${{ jobs.docker-build-push.outputs.image-tag }}
-
 permissions:
   contents: read
   security-events: write
@@ -32,9 +27,6 @@ jobs:
     name: Docker - Build
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-
-    outputs:
-      image-tag: ${{ steps.image-tag.outputs.image-tag }}
 
     steps:
 

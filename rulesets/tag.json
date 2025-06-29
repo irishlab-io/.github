@@ -1,0 +1,43 @@
+{
+  "id": 6367912,
+  "name": "tag",
+  "target": "tag",
+  "source_type": "Repository",
+  "source": "irishlab-io/.github",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "exclude": [],
+      "include": [
+        "~ALL"
+      ]
+    }
+  },
+  "rules": [
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "required_signatures"
+    },
+    {
+      "type": "tag_name_pattern",
+      "parameters": {
+        "operator": "regex",
+        "pattern": "^v0\\.\\d+\\.\\d+$",
+        "negate": false,
+        "name": ""
+      }
+    }
+  ],
+  "bypass_actors": [
+    {
+      "actor_id": null,
+      "actor_type": "OrganizationAdmin",
+      "bypass_mode": "always"
+    }
+  ]
+}
