@@ -18,6 +18,6 @@ jobs:
         uses: boostsecurityio/poutine-action@main
 
       - name: Upload poutine SARIF file
-        uses: github/codeql-action/upload-sarif@v3.24.10
+        uses: github/codeql-action/upload-sarif@v3.29.1
         with:
           sarif_file: results.sarif
