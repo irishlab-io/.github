@@ -27,20 +27,44 @@ jobs:
     secrets: inherit
 
   ansible:
+    needs:
+      - secret
+    name: Ansible Workflow
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Run a multi-line script
+        run: |
+          echo This is a testing workflow for Ansible.
+        shell: bash
+
+  ansible-lint:
+    needs:
+      - ansible
     name: Call Ansible Lint
     uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
 
+  docker:
     needs:
-      - pre-commit
       - secret
+    name: Docker Workflow
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+
+      - name: Run a multi-line script
+        run: |
+          echo This is a testing workflow for Docker.
+        shell: bash
 
   docker-build:
+    needs:
+      - docker
     name: Call Docker Build
     uses: irishlab-io/.github/.github/workflows/reusable-docker-build.yml@main
 
-    needs:
-      - pre-commit
-      - secret
 
     permissions:
       contents: read
@@ -55,18 +79,22 @@ jobs:
           linux/amd64
           linux/arm64
 
-  python-poetry:
-    name: Call Python Poetry
-    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
-
+  python:
     needs:
-      - pre-commit
       - secret
+    name: Python Workflow
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+
+      - name: Run a multi-line script
+        run: |
+          echo This is a testing workflow for Python.
+        shell: bash
 
   python-uv:
+    needs:
+      - python
     name: Call Python UV
     uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
-
-    needs:
-      - pre-commit
-      - secret
