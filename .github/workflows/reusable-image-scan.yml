@@ -43,7 +43,7 @@ jobs:
           echo "Image to scan: ${{ inputs.image }}"
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@76071ef0d7ec797419534a183b498b4d6366cf37 # 0.31.0
         with:
           image-ref: ${{ inputs.image }}
           format: sarif
@@ -55,6 +55,6 @@ jobs:
           timeout: 10m0s
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@181d5eefc20863364f96762470ba6f862bdef56b # v3
         with:
           sarif_file: "trivy-results.sarif"

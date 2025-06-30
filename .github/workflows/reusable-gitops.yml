@@ -67,7 +67,7 @@ jobs:
 
     steps:
       - name: Checkout ${{ inputs.repo }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           repository: ${{ inputs.repo }}
           token: ${{ secrets.github-token }}
@@ -80,7 +80,7 @@ jobs:
 
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7
         with:
           token: ${{ secrets.github-token }}
           commit-message: "Update image for ${{ inputs.kustomize-path }}"
@@ -91,7 +91,7 @@ jobs:
       - name: Post to a Slack channel
         id: slack
         if: ${{ inputs.slack-channel-id }}
-        uses: slackapi/slack-github-action@v2
+        uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52 # v2
         with:
           channel-id: ${{ inputs.slack-channel-id }}
           slack-message: "PR created ${{ steps.cpr.outputs.pull-request-url }}"

@@ -17,13 +17,13 @@ jobs:
 
   pre-commit:
     name: Call Pre-Commit run
-    uses: irishlab-io/.github/.github/workflows/reusable-pre-commit.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-pre-commit.yml@5dd60013618353bb5fbaa536b1d50002426c4f98 # main
 
   secret:
     needs:
       - pre-commit
     name: Call Secret Scanning
-    uses: irishlab-io/.github/.github/workflows/reusable-secret.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-secret.yml@5dd60013618353bb5fbaa536b1d50002426c4f98 # main
     secrets: inherit
 
   sca:
