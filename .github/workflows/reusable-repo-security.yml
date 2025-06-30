@@ -4,6 +4,10 @@ name: Reusable - Repository Misconfigurations
 on: # yamllint disable-line rule:truthy
   workflow_call:
 
+permissions:
+  security-events: write
+  contents: read
+
 jobs:
   repo-security:
     name: Run poutine

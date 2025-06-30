@@ -9,8 +9,7 @@ on: # yamllint disable-line rule:truthy
         required: false
         type: string
         default: |
-            aws-actions/
-            docker/login-action
+            irishlab-io/
 
 jobs:
   pinned-actions:
@@ -25,4 +24,5 @@ jobs:
       - name: Ensure SHA pinned actions
         uses: zgosalvez/github-actions-ensure-sha-pinned-actions@fc87bb5b5a97953d987372e74478de634726b3e5 # v3.0.25
         with:
-          allowlist: ${{ inputs.allowlist }}
+          allowlist: |
+            ${{ inputs.allowlist }}
