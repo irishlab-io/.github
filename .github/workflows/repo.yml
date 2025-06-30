@@ -12,11 +12,22 @@ concurrency:
 
 jobs:
 
+  harden-runner:
+    name: Call Harden Runner
+    uses: irishlab-io/.github/.github/workflows/reusable-harden-runner.yml@main
+
+    permissions:
+      contents: read
+
   pinned-actions:
+    needs:
+      - harden-runner
     name: Call Ensure SHA Pinned Actions
     uses: irishlab-io/.github/.github/workflows/reusable-ensure-pin-actions.yml@main
 
   repo-security:
+    needs:
+      - harden-runner
     name: Call Repository Misconfigurations
     uses: irishlab-io/.github/.github/workflows/reusable-repo-security.yml@main
 
