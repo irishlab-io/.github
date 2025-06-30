@@ -155,7 +155,7 @@ jobs:
         id: attest
         with:
           subject-name: ${{ inputs.image-names }}
-          subject-digest: ${{ steps.docker_meta.outputs.digest }}
+          subject-digest: ${{ steps.build_image.outputs.digest }}
           push-to-registry: true
 
       - name: Find comment for image tags
