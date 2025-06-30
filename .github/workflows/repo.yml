@@ -15,3 +15,7 @@ jobs:
   pinned-actions:
     name: Call Ensure SHA Pinned Actions
     uses: irishlab-io/.github/.github/workflows/reusable-ensure-pin-actions.yml@main
+
+  repo-security:
+    name: Call Repository Misconfigurations
+    uses: irishlab-io/.github/.github/workflows/reusable-repo-security.yml@main
