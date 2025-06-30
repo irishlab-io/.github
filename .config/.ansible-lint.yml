@@ -1,0 +1,9 @@
+---
+profile: production
+exclude_paths:
+  - .github/
+  - .config/
+  - scripts/
+warn_list:
+  - yaml[line-length]
+task_name_prefix: "{stem} | "
