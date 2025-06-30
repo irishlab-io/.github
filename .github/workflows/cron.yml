@@ -12,6 +12,13 @@ concurrency:
 
 jobs:
 
+  harden-runner:
+    name: Call Harden Runner
+    uses: irishlab-io/.github/.github/workflows/reusable-harden-runner.yml@main
+
+    permissions:
+      contents: read
+
   pre-commit:
     name: Call Pre-Commit run
     uses: irishlab-io/.github/.github/workflows/reusable-pre-commit.yml@main
