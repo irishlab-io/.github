@@ -19,3 +19,7 @@ jobs:
   repo-security:
     name: Call Repository Misconfigurations
     uses: irishlab-io/.github/.github/workflows/reusable-repo-security.yml@main
+
+    permissions:
+      security-events: write
+      contents: read
