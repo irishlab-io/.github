@@ -1,10 +1,11 @@
 {
-  "id": 6367912,
-  "name": "tag",
-  "target": "tag",
-  "source_type": "Repository",
-  "source": "irishlab-io/.github",
-  "enforcement": "active",
+  "bypass_actors": [
+    {
+      "actor_id": null,
+      "actor_type": "OrganizationAdmin",
+      "bypass_mode": "always"
+    }
+  ],
   "conditions": {
     "ref_name": {
       "exclude": [],
@@ -13,6 +14,9 @@
       ]
     }
   },
+  "enforcement": "active",
+  "id": 6367912,
+  "name": "tag",
   "rules": [
     {
       "type": "deletion"
@@ -24,20 +28,16 @@
       "type": "required_signatures"
     },
     {
-      "type": "tag_name_pattern",
       "parameters": {
-        "operator": "regex",
-        "pattern": "^v0\\.\\d+\\.\\d+$",
+        "name": "",
         "negate": false,
-        "name": ""
-      }
+        "operator": "regex",
+        "pattern": "^v0\\.\\d+\\.\\d+$"
+      },
+      "type": "tag_name_pattern"
     }
   ],
-  "bypass_actors": [
-    {
-      "actor_id": null,
-      "actor_type": "OrganizationAdmin",
-      "bypass_mode": "always"
-    }
-  ]
+  "source": "irishlab-io/.github",
+  "source_type": "Repository",
+  "target": "tag"
 }

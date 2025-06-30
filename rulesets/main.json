@@ -1,10 +1,11 @@
 {
-  "id": 5850602,
-  "name": "main",
-  "target": "branch",
-  "source_type": "Repository",
-  "source": "mighty-muffin/.github",
-  "enforcement": "active",
+  "bypass_actors": [
+    {
+      "actor_id": null,
+      "actor_type": "OrganizationAdmin",
+      "bypass_mode": "always"
+    }
+  ],
   "conditions": {
     "ref_name": {
       "exclude": [],
@@ -14,6 +15,9 @@
       ]
     }
   },
+  "enforcement": "active",
+  "id": 5850602,
+  "name": "main",
   "rules": [
     {
       "type": "deletion"
@@ -22,7 +26,6 @@
       "type": "non_fast_forward"
     },
     {
-      "type": "pull_request",
       "parameters": {
         "allowed_merge_methods": [
           "squash"
@@ -33,29 +36,26 @@
         "require_last_push_approval": false,
         "required_approving_review_count": 0,
         "required_review_thread_resolution": false
-      }
+      },
+      "type": "pull_request"
     },
     {
       "type": "required_signatures"
     },
     {
-      "type": "merge_queue",
       "parameters": {
         "check_response_timeout_minutes": 60,
         "grouping_strategy": "ALLGREEN",
         "max_entries_to_build": 5,
         "max_entries_to_merge": 5,
         "merge_method": "SQUASH",
-        "min_entries_to_merge_wait_minutes": 5,
-        "min_entries_to_merge": 1
-      }
+        "min_entries_to_merge": 1,
+        "min_entries_to_merge_wait_minutes": 5
+      },
+      "type": "merge_queue"
     }
   ],
-  "bypass_actors": [
-    {
-      "actor_id": null,
-      "actor_type": "OrganizationAdmin",
-      "bypass_mode": "always"
-    }
-  ]
+  "source": "mighty-muffin/.github",
+  "source_type": "Repository",
+  "target": "branch"
 }
