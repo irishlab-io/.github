@@ -16,6 +16,7 @@ ci:
   autoupdate_schedule: monthly
   skip:
     - ggshield
+    - pin-github-action
 repos:
   - repo: meta
     hooks:
