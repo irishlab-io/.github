@@ -17,13 +17,13 @@ jobs:
 
   pre-commit:
     name: Call Pre-Commit run
-    uses: irishlab-io/.github/.github/workflows/reusable-pre-commit.yml@5dd60013618353bb5fbaa536b1d50002426c4f98 # main
+    uses: irishlab-io/.github/.github/workflows/reusable-pre-commit.yml@2330d511d47ce057cfc99a3fbf8b90040daa6b46 # main
 
   secret:
     needs:
       - pre-commit
     name: Call Secret Scanning
-    uses: irishlab-io/.github/.github/workflows/reusable-secret.yml@5dd60013618353bb5fbaa536b1d50002426c4f98 # main
+    uses: irishlab-io/.github/.github/workflows/reusable-secret.yml@2330d511d47ce057cfc99a3fbf8b90040daa6b46 # main
     secrets: inherit
 
   ansible:
@@ -43,7 +43,7 @@ jobs:
     needs:
       - ansible
     name: Call Ansible Lint
-    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@5dd60013618353bb5fbaa536b1d50002426c4f98 # main
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@2330d511d47ce057cfc99a3fbf8b90040daa6b46 # main
 
   docker:
     needs:
@@ -63,7 +63,7 @@ jobs:
     needs:
       - docker
     name: Call Docker Build
-    uses: irishlab-io/.github/.github/workflows/reusable-docker-build.yml@5dd60013618353bb5fbaa536b1d50002426c4f98 # main
+    uses: irishlab-io/.github/.github/workflows/reusable-docker-build.yml@2330d511d47ce057cfc99a3fbf8b90040daa6b46 # main
 
 
     permissions:
@@ -97,4 +97,4 @@ jobs:
     needs:
       - python
     name: Call Python UV
-    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@5dd60013618353bb5fbaa536b1d50002426c4f98 # main
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@2330d511d47ce057cfc99a3fbf8b90040daa6b46 # main
