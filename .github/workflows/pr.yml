@@ -105,3 +105,15 @@ jobs:
       - python
     name: Call Python UV
     uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
+
+  sast:
+    needs:
+      - pre-commit
+      - python-uv
+    name: Call Static Application Security Testing
+    uses: irishlab-io/.github/.github/workflows/reusable-sast.yml@main
+
+    secrets:
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
