@@ -1,8 +1,13 @@
-import requests
 import datetime
+import os
+import requests
+from dotenv import load_dotenv
 
-GITHUB_TOKEN = "YOUR_GITHUB_TOKEN"
-ORG_NAME = "YOUR_ORG_NAME"
+# Load environment variables from .env file
+load_dotenv(dotenv_path=".env")
+
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+ORG_NAME = os.getenv("ORG_NAME")
 
 
 def get_repos(org):
@@ -55,7 +60,7 @@ def get_commit_stats(org, repo, since, until):
 
 
 if __name__ == "__main__":
-    today = datetime.datetime.utcnow().replace(day=1)
+    today = datetime.datetime.now().replace(day=1)
     last_month_end = today - datetime.timedelta(days=1)
     last_month_start = last_month_end.replace(day=1)
     since = last_month_start.isoformat() + "Z"
