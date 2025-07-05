@@ -116,14 +116,21 @@ repos:
         language: node
         additional_dependencies:
           - pin-github-action@3.3.1
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.20.0
+    hooks:
+      - id: pyupgrade
+        name: "python | upgrade: run pyupgrade"
+        args:
+          - --py313-plus
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
-    rev: 0.7.18
+    rev: 0.7.19
     hooks:
       - id: uv-lock
         name: "python | uv: lock dependencies"
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.1
+    rev: v0.12.2
     hooks:
       - id: ruff-check
         name: "python | lint: run ruff-check"
