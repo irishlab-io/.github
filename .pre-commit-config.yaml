@@ -123,7 +123,7 @@ repos:
       - id: uv-lock
         name: "python | uv: lock dependencies"
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.2
+    rev: v0.12.4
     hooks:
       - id: ruff-check
         name: "python | lint: run ruff-check"
