@@ -1,5 +1,5 @@
 ---
-name: Reusable - Run Sonarqube Scan
+name: Reusable - Run Snyk Scan
 
 on: # yamllint disable-line rule:truthy
   workflow_call:
@@ -9,8 +9,8 @@ on: # yamllint disable-line rule:truthy
         required: true
 
 jobs:
-  sonarqube:
-    name: Sonarqube Scan
+  snyk:
+    name: Snyk Scan
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
