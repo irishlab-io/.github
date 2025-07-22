@@ -15,17 +15,17 @@ on: # yamllint disable-line rule:truthy
         type: boolean
         default: true
     secrets:
-      TAILSCALE_AUTHKEY:
-        description: Tailscale Auth Key
-        required: true
       SONAR_TOKEN:
         description: SonarQube Token
         required: true
       SONAR_HOST_URL:
         description: SonarQube Host URL
-        required: true
+        required: false
       SNYK_TOKEN:
         description: Snyk Token
+        required: false
+      TAILSCALE_AUTHKEY:
+        description: Tailscale Auth Key
         required: true
 
 jobs:
