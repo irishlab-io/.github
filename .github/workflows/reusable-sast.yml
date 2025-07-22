@@ -4,6 +4,11 @@ name: Reusable - Run Static Application Security Testing
 on: # yamllint disable-line rule:truthy
   workflow_call:
     inputs:
+      codeql:
+        description: Run CodeQL scan
+        required: false
+        type: boolean
+        default: false
       sonarqube:
         description: Run Sonarqube scan
         required: false
@@ -29,6 +34,11 @@ on: # yamllint disable-line rule:truthy
         required: false
 
 jobs:
+  codeql:
+    if: ${{ inputs.codeql }}
+    name: Call CodeQL Scan
+    uses: irishlab-io/.github/.github/workflows/reusable-codeql.yml@main
+
   sonarqube:
     if: ${{ inputs.sonarqube }}
     name: Call SonarQube Scan
