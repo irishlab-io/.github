@@ -8,16 +8,16 @@ on: # yamllint disable-line rule:truthy
         description: Run Sonarqube scan
         required: false
         type: boolean
-        default: true
+        default: false
       snyk:
         description: 'Run Snyk scan'
         required: false
         type: boolean
-        default: true
+        default: false
     secrets:
       SONAR_TOKEN:
         description: SonarQube Token
-        required: true
+        required: false
       SONAR_HOST_URL:
         description: SonarQube Host URL
         required: false
@@ -26,7 +26,7 @@ on: # yamllint disable-line rule:truthy
         required: false
       TAILSCALE_AUTHKEY:
         description: Tailscale Auth Key
-        required: true
+        required: false
 
 jobs:
   sonarqube:
