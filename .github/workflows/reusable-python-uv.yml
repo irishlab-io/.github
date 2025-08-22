@@ -73,7 +73,7 @@ jobs:
           uv sync --all-extras --dev --frozen
 
       - name: Install dependencies
-        uses: astral-sh/ruff-action@0c50076f12c38c3d0115b7b519b54a91cb9cf0ad # v3.5.0
+        uses: astral-sh/ruff-action@57714a7c8a2e59f32539362ba31877a1957dded1 # v3.5.1
         with:
           version: ${{ inputs.ruff_version }}
           args: check
