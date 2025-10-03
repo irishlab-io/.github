@@ -7,8 +7,6 @@ exclude: |
 fail_fast: false
 default_stages:
   - pre-commit
-default_language_version:
-  python: python3.12
 default_install_hook_types:
   - commit-msg
   - pre-commit
@@ -25,19 +23,19 @@ repos:
         stages:
           - manual
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.8.3
+    rev: v4.9.1
     hooks:
       - id: commitizen
         name: "git | validate commit messages"
         stages:
           - commit-msg
   - repo: https://github.com/gitguardian/ggshield
-    rev: v1.41.0
+    rev: v1.43.0
     hooks:
       - id: ggshield
         name: "security | scan for secrets"
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
         name: "git | block large files"
@@ -90,7 +88,7 @@ repos:
           - -c
           - .config/.yaml-lint.yml
   - repo: https://github.com/ansible-community/ansible-lint
-    rev: v25.6.1
+    rev: v25.9.1
     hooks:
       - id: ansible-lint
         name: "ansible | lint: run ansible-lint"
@@ -99,11 +97,15 @@ repos:
           - -c
           - .config/.ansible-lint.yml
           - --fix
+        stages:
+          - manual
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.7
     hooks:
       - id: actionlint
         name: "gh-action | lint: run actionlint"
+        stages:
+          - manual
   - repo: local
     hooks:
       - id: pin-github-action
@@ -118,12 +120,12 @@ repos:
           - pin-github-action@3.4.0
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
-    rev: 0.8.0
+    rev: 0.8.22
     hooks:
       - id: uv-lock
         name: "python | uv: lock dependencies"
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.4
+    rev: v0.13.3
     hooks:
       - id: ruff-check
         name: "python | lint: run ruff-check"
