@@ -160,7 +160,7 @@ jobs:
           sbom: true
 
       - name: Attest
-        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
         if: github.event_name == 'pull_request' && inputs.attest-enable
         id: attest
         with:
