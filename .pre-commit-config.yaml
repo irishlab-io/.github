@@ -120,7 +120,7 @@ repos:
           - pin-github-action@3.4.0
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
-    rev: 0.8.22
+    rev: 0.9.0
     hooks:
       - id: uv-lock
         name: "python | uv: lock dependencies"
