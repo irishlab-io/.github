@@ -1,5 +1,6 @@
 ---
 name: CI - Pull Request
+run-name: Continuous Integration for PR-${{ github.event.pull_request.number }} by ${{ github.actor }}
 
 on: # yamllint disable-line rule:truthy
   pull_request:
@@ -7,101 +8,22 @@ on: # yamllint disable-line rule:truthy
       - main
     paths-ignore:
       - 'README.md'
-  workflow_dispatch:
 
 concurrency:
-  group: ${{ github.ref }}-${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
 
-  harden-runner:
-    name: Call Harden Runner
-    uses: irishlab-io/.github/.github/workflows/reusable-harden-runner.yml@main
-
-    permissions:
-      contents: read
-
   pre-commit:
-    name: Call Pre-Commit run
-    uses: irishlab-io/.github/.github/workflows/reusable-pre-commit.yml@main
+    name: Call Prek
+    uses: irishlab-io/.github/.github/workflows/reusable-prek.yml@main
+    with:
+      skips: "actionlint,ggshield,pin-github-action"
 
   secret:
     needs:
       - pre-commit
-    name: Call Secret Scanning
-    uses: irishlab-io/.github/.github/workflows/reusable-secret.yml@main
+    name: Call Git Guardian
+    uses: irishlab-io/.github/.github/workflows/reusable-gitguardian.yml@main
     secrets: inherit
-
-  ansible:
-    needs:
-      - secret
-    name: Ansible Workflow
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-
-    steps:
-      - name: Run a multi-line script
-        run: |
-          echo This is a testing workflow for Ansible.
-        shell: bash
-
-  ansible-lint:
-    needs:
-      - ansible
-    name: Call Ansible Lint
-    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
-
-  docker:
-    needs:
-      - secret
-    name: Docker Workflow
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-
-    steps:
-
-      - name: Run a multi-line script
-        run: |
-          echo This is a testing workflow for Docker.
-        shell: bash
-
-  docker-build:
-    needs:
-      - docker
-    name: Call Docker Build
-    uses: irishlab-io/.github/.github/workflows/reusable-docker-build.yml@main
-
-
-    permissions:
-      contents: read
-      packages: write
-      pull-requests: write
-
-    with:
-      context: "./demo/docker/"
-      image-names: |
-        ghcr.io/irishlab-io/demo-docker
-      platforms: |
-          linux/amd64
-          linux/arm64
-
-  python:
-    needs:
-      - secret
-    name: Python Workflow
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-
-    steps:
-
-      - name: Run a multi-line script
-        run: |
-          echo This is a testing workflow for Python.
-        shell: bash
-
-  python-uv:
-    needs:
-      - python
-    name: Call Python UV
-    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main

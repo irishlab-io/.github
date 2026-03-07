@@ -1,5 +1,6 @@
 ---
 name: CI - Repository
+run-name: Continuous Integration for ${{ github.repository }} on ${{ github.head_ref || github.ref_name }} by ${{ github.actor }}
 
 on: # yamllint disable-line rule:truthy
   schedule:
@@ -12,25 +13,8 @@ concurrency:
 
 jobs:
 
-  harden-runner:
-    name: Call Harden Runner
-    uses: irishlab-io/.github/.github/workflows/reusable-harden-runner.yml@main
-
-    permissions:
-      contents: read
-
   pinned-actions:
-    needs:
-      - harden-runner
     name: Call Ensure SHA Pinned Actions
     uses: irishlab-io/.github/.github/workflows/reusable-ensure-pin-actions.yml@main
-
-  repo-security:
-    needs:
-      - harden-runner
-    name: Call Repository Misconfigurations
-    uses: irishlab-io/.github/.github/workflows/reusable-repo-security.yml@main
-
-    permissions:
-      security-events: write
-      contents: read
+    with:
+      allowlist: "${{ github.repository_owner }}/"

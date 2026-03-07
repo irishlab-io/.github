@@ -1,5 +1,6 @@
 ---
 name: CI - Cron
+run-name: Continuous Integration on ${{ github.head_ref || github.ref_name }} by ${{ github.actor }}
 
 on: # yamllint disable-line rule:truthy
   schedule:
@@ -13,8 +14,10 @@ concurrency:
 jobs:
 
   pre-commit:
-    name: Call Pre-Commit run
-    uses: irishlab-io/.github/.github/workflows/reusable-pre-commit.yml@main
+    name: Call Prek
+    uses: irishlab-io/.github/.github/workflows/reusable-prek.yml@main
+    with:
+      skips: "actionlint,ggshield,pin-github-action"
 
   secret:
     needs:

@@ -1,6 +1,6 @@
 ---
 name: CI - Main
-run-name: Continuous Integration on branch ${{ github.head_ref || github.ref_name }} by ${{ github.actor }}
+run-name: Continuous Integration on ${{ github.head_ref || github.ref_name }} by ${{ github.actor }}
 
 on: # yamllint disable-line rule:truthy
   push:
@@ -8,14 +8,10 @@ on: # yamllint disable-line rule:truthy
       - main
     paths-ignore:
       - 'README.md'
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
-
-env:
-  ENVIRONMENT: "prod"
 
 jobs:
 
