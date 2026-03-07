@@ -81,8 +81,6 @@ repos:
     hooks:
       - id: actionlint
         name: "gh-action | lint: run actionlint"
-        stages:
-          - manual
   - repo: local
     hooks:
       - id: pin-github-action

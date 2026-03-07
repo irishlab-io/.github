@@ -1,5 +1,6 @@
 ---
 name: CI - Main
+run-name: Continuous Integration on branch ${{ github.head_ref || github.ref_name }} by ${{ github.actor }}
 
 on: # yamllint disable-line rule:truthy
   push:
@@ -18,17 +19,15 @@ env:
 
 jobs:
 
-  pre-commitk:
+  pre-commit:
     name: Call Prek
-    id: pre-commit
     uses: irishlab-io/.github/.github/workflows/reusable-prek.yml@main
     with:
-      skip: "pin-github-action"
+      skips: "pin-github-action"
 
   secret:
     needs:
       - pre-commit
     name: Call Git Guardian
-    id: secret
     uses: irishlab-io/.github/.github/workflows/reusable-gitguardian.yml@main
     secrets: inherit
