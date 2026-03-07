@@ -1,0 +1,72 @@
+---
+name: Reusable - Run Sonarqube Scan
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      gating:
+        default: true
+        description: Enable Sonarqube Quality Gate
+        required: false
+        type: boolean
+      image-tag:
+        default: ""
+        description: Container image tagto be scanned, e.g. "latest" or "1.0.0". Required if the project is a container image.
+        required: false
+        type: string
+    secrets:
+      TS_OAUTH_CLIENT_ID:
+        description: Tailscale OAuth client ID
+        required: true
+      TS_OAUTH_CLIENT_SECRET:
+        description: Tailscale OAuth client secret
+        required: true
+      DEPENDENCYTRACK_URL:
+        description: Dependency-Track Host URL
+        required: true
+      DEPENDENCYTRACK_TOKEN:
+        description: Dependency-Track API Token
+        required: true
+
+jobs:
+  dependency-track:
+    name: Dependency-Track Scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Call Tailscale Action
+        id: tailscale
+        uses: irishlab-io/.github/.github/actions/tailscale@main
+        with:
+          ts-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          ts-client-secret: ${{ secrets.TS_OAUTH_CLIENT_SECRET }}
+          tags: "tag:ci"
+
+      - name: Get Tailscale IP address
+        run: |
+          tailscale ip -4
+        shell: bash
+
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # v0.22.2
+        with:
+          image: ghcr.io/${{ github.repository }}:${{ inputs.image-tag }}
+          format: cyclonedx-json
+          artifact-name: ${{ github.run_id }}-sbom.json
+          output-file: ${{ github.workspace }}/${{ github.run_id }}-sbom.json
+
+      - name: Upload SBOM to Dependency-Track
+        uses: DependencyTrack/gh-upload-sbom@48feab3080ff9e8f51f4d21861d9fc914eb744f5 # v3.1.0
+        with:
+          serverhostname: ${{ secrets.DEPENDENCYTRACK_URL }}
+          apikey: ${{ secrets.DEPENDENCYTRACK_TOKEN }}
+          projectname: "A-demo-test-project"
+          projectversion: "0.0.1"
+          bomfilename: ${{ github.workspace }}/${{ github.run_id }}-sbom.json
+          autocreate: true

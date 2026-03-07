@@ -4,19 +4,22 @@ name: Reusable - Run Sonarqube Scan
 on: # yamllint disable-line rule:truthy
   workflow_call:
     inputs:
-      sonarqube_gating:
+      gating:
         description: Enable Sonarqube Quality Gate
         required: false
         type: boolean
         default: true
     secrets:
-      TAILSCALE_AUTHKEY:
-        description: Tailscale Auth Key
+      TS_OAUTH_CLIENT_ID:
+        description: Tailscale OAuth client ID
         required: true
-      SONAR_TOKEN:
+      TS_OAUTH_CLIENT_SECRET:
+        description: Tailscale OAuth client secret
+        required: true
+      SONARQUBE_TOKEN:
         description: SonarQube Token
         required: true
-      SONAR_HOST_URL:
+      SONARQUBE_URL:
         description: SonarQube Host URL
         required: true
 
@@ -32,23 +35,28 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Connect Tailscale VPN
-        uses: tailscale/github-action@84a3f23bb4d843bcf4da6cf824ec1be473daf4de # v3.2.3
+      - name: Call Tailscale Action
+        id: tailscale
+        uses: irishlab-io/.github/.github/actions/tailscale@main
         with:
-          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          ts-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          ts-client-secret: ${{ secrets.TS_OAUTH_CLIENT_SECRET }}
           tags: "tag:ci"
-          version: "latest"
-          use-cache: "true"
+
+      - name: Get Tailscale IP address
+        run: |
+          tailscale ip -4
+        shell: bash
 
       - name: Run SAST - SonarQube
         uses: SonarSource/sonarqube-scan-action@2500896589ef8f7247069a56136f8dc177c27ccf # v5.2.0
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
 
       - name: Quality gating SAST - SonarQube
-        if: ${{ inputs.sonarqube_gating }}
+        if: ${{ inputs.gating }}
         uses: SonarSource/sonarqube-quality-gate-action@cf038b0e0cdecfa9e56c198bbb7d21d751d62c3b # v1.2.0
         timeout-minutes: 5
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
