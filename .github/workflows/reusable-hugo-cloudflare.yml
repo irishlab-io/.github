@@ -1,0 +1,145 @@
+---
+name: Reusable - Hugo Deploy to Cloudflare Pages
+
+# REUSABLE WORKFLOW with INPUTS
+# Deploys a Hugo static site to Cloudflare Pages.
+# Assumptions:
+# - Hugo source lives at the root of the repository (or a configurable subdirectory)
+# - The Hugo output directory defaults to `public/`
+# - Cloudflare Pages project already exists in your Cloudflare account
+# - Required secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+#
+# Typical caller usage:
+#   jobs:
+#     deploy:
+#       uses: irishlab-io/.github/.github/workflows/reusable-hugo-cloudflare.yml@main
+#       with:
+#         cloudflare-project-name: my-blog
+#       secrets:
+#         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+#         CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      cloudflare-project-name:
+        description: Name of the Cloudflare Pages project to deploy to
+        required: true
+        type: string
+      environment:
+        description: >
+          Deployment environment name used to select GitHub environment secrets/vars.
+          Typical values: production, staging.
+        required: false
+        default: production
+        type: string
+      hugo-extended:
+        description: Use the Hugo extended edition (required for SCSS/SASS processing)
+        required: false
+        default: true
+        type: boolean
+      hugo-version:
+        description: Hugo version to install (e.g. 0.147.0). Defaults to latest.
+        required: false
+        default: latest
+        type: string
+      publish-directory:
+        description: Directory that Hugo writes the built site into (relative to working-directory)
+        required: false
+        default: public
+        type: string
+      submodules:
+        description: >
+          Whether to checkout Git submodules. Set to 'recursive' to checkout
+          submodules recursively (required by most Hugo themes installed as submodules).
+        required: false
+        default: recursive
+        type: string
+      working-directory:
+        description: Working directory for the Hugo build (path to Hugo project root)
+        required: false
+        default: .
+        type: string
+
+    secrets:
+      CLOUDFLARE_API_TOKEN:
+        description: >
+          Cloudflare API token with Cloudflare Pages Edit permission.
+          See docs/pipeline/hugo-cloudflare.md for required token permissions.
+        required: true
+      CLOUDFLARE_ACCOUNT_ID:
+        description: Cloudflare account ID where the Pages project lives
+        required: true
+
+    outputs:
+      deployment-url:
+        description: URL of the deployed Cloudflare Pages deployment
+        value: ${{ jobs.hugo-deploy.outputs.deployment-url }}
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+
+  hugo-deploy:
+
+    name: Hugo - Build and Deploy to Cloudflare Pages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ steps.deploy.outputs.deployment-url }}
+
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.deployment-url }}
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          submodules: ${{ inputs.submodules }}
+          fetch-depth: 0
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@75d2e84710de30f6ff7268e08f310b60ef14033f # v3.0.0
+        with:
+          hugo-version: ${{ inputs.hugo-version }}
+          extended: ${{ inputs.hugo-extended }}
+
+      - name: Cache Hugo modules
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            /tmp/hugo_cache_${{ inputs.working-directory }}
+            ${{ inputs.working-directory }}/resources
+          key: ${{ runner.os }}-hugo-${{ inputs.working-directory }}-${{ hashFiles(format('{0}/**/go.sum', inputs.working-directory), format('{0}/**/go.mod', inputs.working-directory), format('{0}/hugo.yaml', inputs.working-directory), format('{0}/hugo.toml', inputs.working-directory), format('{0}/hugo.json', inputs.working-directory), format('{0}/config.yaml', inputs.working-directory), format('{0}/config.toml', inputs.working-directory), format('{0}/config.json', inputs.working-directory)) }}
+          restore-keys: |
+            ${{ runner.os }}-hugo-${{ inputs.working-directory }}-
+
+      - name: Build Hugo site
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          hugo \
+            --minify \
+            --gc \
+            --destination "${{ inputs.publish-directory }}"
+        shell: bash
+        env:
+          HUGO_ENVIRONMENT: ${{ inputs.environment }}
+          HUGO_ENV: ${{ inputs.environment }}
+          TZ: UTC
+
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: >-
+            pages deploy ${{ inputs.working-directory == '.' && inputs.publish-directory || format('{0}/{1}', inputs.working-directory, inputs.publish-directory) }}
+            --project-name=${{ inputs.cloudflare-project-name }}
+            --branch=${{ github.ref_name }}
+            --commit-hash=${{ github.sha }}
+            --commit-dirty=false
