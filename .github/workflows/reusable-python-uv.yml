@@ -84,7 +84,7 @@ jobs:
 
       - name: Ruff - Check Code Style
         if: inputs.ruff-enable
-        uses: astral-sh/ruff-action@0c50076f12c38c3d0115b7b519b54a91cb9cf0ad # v3.5.0
+        uses: astral-sh/ruff-action@4919ec5cf1f49eff0871dbcea0da843445b837e6 # v3.6.1
         with:
           version: ${{ inputs.ruff_version }}
           args: check
