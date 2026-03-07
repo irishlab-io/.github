@@ -1,0 +1,27 @@
+---
+name: Reusable - Prek
+description: "Run prek (pre-commit) hooks on the codebase"
+author: "irishlab-io"
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      skips:
+        description: Prek Skip
+        required: false
+        type: string
+
+jobs:
+  prek:
+    name: Run prek
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Run Prek Checks
+        uses: j178/prek-action@91fd7d7cf70ae1dee9f4f44e7dfa5d1073fe6623 # v1.0.11
+        env:
+          SKIP: ${{ inputs.skip }}

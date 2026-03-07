@@ -95,3 +95,5 @@ repos:
         language: node
         additional_dependencies:
           - pin-github-action@3.4.0
+        stages:
+          - manual

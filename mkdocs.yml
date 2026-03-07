@@ -1,0 +1,44 @@
+---
+site_name: IrishLab.io Documentation
+site_description: Documentation for the IrishLab.io organization, covering project overview, architecture, development, pipeline, security, and testing.
+site_author: irish1986
+
+docs_dir: docs
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+  features:
+    - content.code.annotate
+    - content.code.copy
+
+markdown_extensions:
+  - footnotes:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - Home: README.md
+  - Context: context.md
+  - Organization:
+      - Setup Overview: organization/overview.md
+      - Bootstrap Checklist: organization/bootstrap-checklist.md
+      - Policy Template: organization/policy-template.md
+  - Architecture:
+      - Overview: architecture/overview.md
+  - Development:
+      - Overview: development/overview.md
+  - Pipeline:
+      - Overview: pipeline/overview.md
+      - Branches: pipeline/branches.md
+      - Dependabot: pipeline/dependabot.md
+  - Security:
+      - Overview: security/overview.md
+  - Testing:
+      - Overview: testing/overview.md

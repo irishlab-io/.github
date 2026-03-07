@@ -23,10 +23,6 @@ MD041:
   level: 1
   front_matter_title: ""
 MD044:
-  names:
-    - DevOps
-    - DevSecOps
-    - Git
   code_blocks: false
 MD046:
   style: fenced
