@@ -21,6 +21,13 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Run Prek Checks
+        id: precommit
         uses: j178/prek-action@91fd7d7cf70ae1dee9f4f44e7dfa5d1073fe6623 # v1.0.11
         env:
           SKIP: ${{ inputs.skips }}
+
+      - name: Check status of potentially failing step and issue warning
+        if: steps.precommit.outcome == 'failure'
+        run: |
+          echo "::error::The previous step detected potential pre-commit issues in the code. Please review the CI report above."
+        shell: bash
