@@ -1,5 +1,7 @@
 ---
-# pre-commit install --allow-missing-config &&  pre-commit autoupdate && pre-commit run --all-files --color auto
+# pre-commit install --allow-missing-config
+# pre-commit autoupdate
+# pre-commit run --all-files --color auto
 exclude: |
   (?x)^(
     \.pre-commit-config\.yaml$
@@ -10,27 +12,20 @@ default_stages:
 default_install_hook_types:
   - commit-msg
   - pre-commit
-ci:
-  autoupdate_schedule: monthly
-  skip:
-    - ggshield
-    - pin-github-action
 repos:
   - repo: meta
     hooks:
       - id: identity
         name: "meta | pre-commit hooks"
-        stages:
-          - manual
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.9.1
+    rev: v4.13.9
     hooks:
       - id: commitizen
         name: "git | validate commit messages"
         stages:
           - commit-msg
   - repo: https://github.com/gitguardian/ggshield
-    rev: v1.43.0
+    rev: v1.48.0
     hooks:
       - id: ggshield
         name: "security | scan for secrets"
@@ -58,12 +53,6 @@ repos:
         name: "general | fix line ending"
         args:
           - --fix=auto
-      - id: no-commit-to-branch
-        name: "git | protect main branch"
-        args:
-          - --branch=main
-        stages:
-          - manual
       - id: pretty-format-json
         name: "general | prettify JSON files"
         args:
@@ -72,7 +61,7 @@ repos:
       - id: trailing-whitespace
         name: "general | remove trailing whitespace"
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.45.0
+    rev: v0.48.0
     hooks:
       - id: markdownlint
         name: "md | lint: run markdownlint-cli"
@@ -80,27 +69,15 @@ repos:
           - --config
           - .config/.markdown-lint.yml
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.37.1
+    rev: v1.38.0
     hooks:
       - id: yamllint
         name: "yaml | lint: run yamllint"
         args:
           - -c
           - .config/.yaml-lint.yml
-  - repo: https://github.com/ansible-community/ansible-lint
-    rev: v25.9.1
-    hooks:
-      - id: ansible-lint
-        name: "ansible | lint: run ansible-lint"
-        files: \.(yaml|yml)$
-        args:
-          - -c
-          - .config/.ansible-lint.yml
-          - --fix
-        stages:
-          - manual
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.7
+    rev: v1.7.11
     hooks:
       - id: actionlint
         name: "gh-action | lint: run actionlint"
@@ -118,17 +95,3 @@ repos:
         language: node
         additional_dependencies:
           - pin-github-action@3.4.0
-  - repo: https://github.com/astral-sh/uv-pre-commit
-    # uv version.
-    rev: 0.8.22
-    hooks:
-      - id: uv-lock
-        name: "python | uv: lock dependencies"
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.3
-    hooks:
-      - id: ruff-check
-        name: "python | lint: run ruff-check"
-        args:
-          - --fix
-      - id: ruff-format

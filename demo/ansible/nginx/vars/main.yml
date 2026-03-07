@@ -1,2 +1,0 @@
----
-nginx_custom_directory: /home/{{ ansible_user }}/nginx
