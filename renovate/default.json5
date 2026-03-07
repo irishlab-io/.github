@@ -1,0 +1,96 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Default Renovate preset for irishlab-io — extend with: github>irishlab-io/.github//renovate/default",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":separateMajorReleases",
+    "group:monorepos"
+  ],
+  "timezone": "America/Toronto",
+  "schedule": ["before 6am on sunday"],
+  "labels": ["dependencies"],
+  // Auto-merge is disabled by default; enable via the reusable workflow input
+  // or by overriding automerge in the repository renovate.json5 config.
+  "automerge": false,
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "Renovate Dependency Dashboard",
+  "prHourlyLimit": 10,
+  "prConcurrentLimit": 20,
+  "packageRules": [
+    // ── GitHub Actions ─────────────────────────────────────────────────────────
+    {
+      "description": "Group GitHub Actions minor and patch updates into a single PR",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "github-actions (minor and patch)",
+      "labels": ["dependencies", "github-actions"],
+      "automerge": false
+    },
+    // ── Dockerfile ─────────────────────────────────────────────────────────────
+    {
+      "description": "Group Dockerfile base-image minor and patch updates into a single PR",
+      "matchManagers": ["dockerfile"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dockerfile (minor and patch)",
+      "labels": ["dependencies", "docker"],
+      "automerge": false
+    },
+    // ── Docker Compose ─────────────────────────────────────────────────────────
+    {
+      "description": "Group Docker Compose image minor and patch updates into a single PR",
+      "matchManagers": ["docker-compose"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "docker-compose (minor and patch)",
+      "labels": ["dependencies", "docker"],
+      "automerge": false
+    },
+    // ── Python — uv ────────────────────────────────────────────────────────────
+    {
+      "description": "Group Python (uv) minor and patch dependency updates into a single PR",
+      "matchManagers": ["uv"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "python-uv (minor and patch)",
+      "labels": ["dependencies", "python"],
+      "automerge": false
+    },
+    // ── Node.js — npm ──────────────────────────────────────────────────────────
+    {
+      "description": "Group npm minor and patch dependency updates into a single PR",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "npm (minor and patch)",
+      "labels": ["dependencies", "nodejs"],
+      "automerge": false
+    },
+    // ── pre-commit ─────────────────────────────────────────────────────────────
+    {
+      "description": "Group pre-commit hook minor and patch updates into a single PR",
+      "matchManagers": ["pre-commit"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "pre-commit (minor and patch)",
+      "labels": ["dependencies", "pre-commit"],
+      "automerge": false
+    },
+    // ── Helm charts ────────────────────────────────────────────────────────────
+    {
+      "description": "Group Helm chart minor and patch updates into a single PR",
+      "matchManagers": ["helmv3", "helm-values", "helm-requirements"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "helm (minor and patch)",
+      "labels": ["dependencies", "helm"],
+      "automerge": false
+    },
+    // ── Terraform providers ────────────────────────────────────────────────────
+    {
+      "description": "Group Terraform provider minor and patch updates into a single PR",
+      "matchManagers": ["terraform"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "terraform (minor and patch)",
+      "labels": ["dependencies", "terraform"],
+      "automerge": false
+    }
+  ]
+}

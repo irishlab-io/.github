@@ -1,0 +1,80 @@
+---
+name: Reusable - Renovate
+
+# Self-hosted Renovate workflow (not the SaaS version).
+# Authenticates via a GitHub App so that tokens carry fine-grained permissions.
+#
+# Usage from another workflow:
+#
+#   jobs:
+#     renovate:
+#       uses: irishlab-io/.github/.github/workflows/reusable-renovate.yml@main
+#       secrets:
+#         RENOVATE_APP_ID: ${{ secrets.RENOVATE_APP_ID }}
+#         RENOVATE_APP_PRIVATE_KEY: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+#
+# The consuming repository should supply a renovate.json5 (or the path
+# specified via config_file) that extends the org preset, e.g.:
+#
+#   {
+#     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+#     "extends": ["github>irishlab-io/.github//renovate/default"]
+#   }
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      auto_merge:
+        description: Enable auto-merge for patch and minor dependency updates
+        required: false
+        default: false
+        type: boolean
+      config_file:
+        description: Path to the Renovate config file inside the repository
+        required: false
+        default: "renovate.json5"
+        type: string
+      log_level:
+        description: Renovate log level (debug, info, warn, error)
+        required: false
+        default: "info"
+        type: string
+      runs_on:
+        description: Runner label(s) to use — defaults to self-hosted
+        required: false
+        default: "self-hosted"
+        type: string
+    secrets:
+      RENOVATE_APP_ID:
+        description: GitHub App ID used by Renovate to authenticate
+        required: true
+      RENOVATE_APP_PRIVATE_KEY:
+        description: GitHub App private key (PEM) used by Renovate to authenticate
+        required: true
+
+jobs:
+  renovate:
+    name: Renovate Dependency Update
+    runs-on: ${{ inputs.runs_on }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@7b4b65bf31e07d4e3e51708d07700fb41bc03166 # v46.1.3
+        with:
+          configurationFile: ${{ inputs.config_file }}
+          token: ${{ steps.generate-token.outputs.token }}
+        env:
+          LOG_LEVEL: ${{ inputs.log_level }}
+          RENOVATE_AUTOMERGE: ${{ inputs.auto_merge }}

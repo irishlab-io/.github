@@ -6,6 +6,16 @@ on: # yamllint disable-line rule:truthy
   schedule:
     - cron: "0 0 * * 0"
   workflow_dispatch:
+    inputs:
+      repo_name:
+        description: Name of the repository to onboard (leave empty for pinned-actions check only)
+        required: false
+        type: string
+  # Triggered automatically by the GitHub App webhook when a new repository is created.
+  # Webhook payload must include client_payload.repo_name with the new repository name.
+  repository_dispatch:
+    types:
+      - repository-created
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -15,6 +25,21 @@ jobs:
 
   pinned-actions:
     name: Call GH Pinned Actions
+    if: github.event_name == 'schedule'
+    permissions:
+      contents: read
     uses: irishlab-io/.github/.github/workflows/reusable-gh-pin-actions.yml@main
     with:
       allowlist: "${{ github.repository_owner }}/"
+
+  onboard-repository:
+    name: Call Repository Onboarding
+    if: >-
+      github.event_name == 'workflow_dispatch' && inputs.repo_name != '' ||
+      github.event_name == 'repository_dispatch'
+    permissions:
+      contents: read
+    uses: irishlab-io/.github/.github/workflows/reusable-repo-onboarding.yml@main
+    with:
+      repo_name: "${{ github.event_name == 'repository_dispatch' && github.event.client_payload.repo_name || inputs.repo_name }}"
+    secrets: inherit
