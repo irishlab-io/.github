@@ -4,52 +4,57 @@ name: Reusable - Python UV
 on: # yamllint disable-line rule:truthy
   workflow_call:
     inputs:
+      os:
+        default: ubuntu-24.04
+        description: Runner OS to use for a single job
+        required: false
+        type: string
+      os-matrix:
+        default: ""
+        description: JSON array of runner labels to use for a matrix build
+        required: false
+        type: string
       pytest-enable:
+        default: true
         description: Enable Pytest for unit tests
         required: false
-        default: true
         type: boolean
-      python_file:
-        description: Python version to use
+      python-version:
+        default: "3.14"
+        description: Python version to use for a single job
+        required: false
         type: string
-        required: false
-        default: ".python-version"
-      python_version:
-        description: Python version to use
-        type: string
-        required: false
-        default: "3.13"
-      ruff-enable:
-        description: Enable Ruff for code style checks
-        required: false
-        default: true
-        type: boolean
-      ruff_version:
-        description: Ruff version to use
-        type: string
-        required: false
-        default: "0.8.0"
-      uv_version:
-        description: UV version to use
-        type: string
-        required: false
-        default: "0.7.11"
-      working_directory:
-        description: Project working directory
-        type: string
-        required: false
+      python-version-matrix:
         default: ""
+        description: JSON array of Python versions to use for a matrix build
+        required: false
+        type: string
+      uv-cache:
+        default: true
+        description: Enable UV cache
+        required: false
+        type: boolean
+      uv-version:
+        default: "latest"
+        description: UV version to use
+        required: false
+        type: string
+      working_directory:
+        default: ""
+        description: Project working directory
+        required: false
+        type: string
 
 jobs:
-  python-poetry:
-    name: Python - UV
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-
-    defaults:
-      run:
-        shell: bash
-        working-directory: ${{ inputs.working_directory }}
+  build:
+    name: Build & Unit Test (${{ matrix.os }}, py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ inputs.os-matrix != '' && fromJSON(inputs.os-matrix) || fromJSON(format('["{0}"]', inputs.os)) }}
+        python-version: ${{ inputs.python-version-matrix != '' && fromJSON(inputs.python-version-matrix) || fromJSON(format('["{0}"]', inputs.python-version)) }}
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
@@ -58,42 +63,35 @@ jobs:
       - name: Install UV
         uses: astral-sh/setup-uv@7edac99f961f18b581bbd960d59d049f04c0002f # v6.4.1
         with:
-          enable-cache: true
+          enable-cache: ${{ inputs.uv-cache }}
           cache-dependency-glob: "uv.lock"
-          version: ${{ inputs.uv_version }}
+          version: ${{ inputs.uv-version }}
 
-      - name: Set up python
+      - name: Setup Python ${{ matrix.python-version }}
         id: setup-python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
-          python-version: ${{ inputs.python_version || '3.13' }}
-          # python-version-file: ${{ inputs.python_file || 'pyproject.toml' }}
-
-      - name: Restore UV cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.cache/uv-cache
-          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
-          restore-keys: |
-            uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
-            uv-${{ runner.os }}
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
           uv sync --all-extras --dev --frozen
+        shell: bash
 
-      - name: Ruff - Check Code Style
-        if: inputs.ruff-enable
-        uses: astral-sh/ruff-action@0c50076f12c38c3d0115b7b519b54a91cb9cf0ad # v3.5.0
-        with:
-          version: ${{ inputs.ruff_version }}
-          args: check
+      - name: build
+        id: build
+        run: |
+          uv build
+        shell: bash
 
-      - name: Pytest - Run Unit Test
-        if: inputs.pytest-enable
+      - name: Run Pytest
+        if: ${{ inputs.pytest-enable }}
+        id: pytest
         run: |
           uv run pytest
+        shell: bash
 
       - name: Minimize UV cache
         run: |
           uv cache prune --ci
+        shell: bash
