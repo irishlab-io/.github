@@ -1,0 +1,114 @@
+---
+name: Reusable - Terraform Apply
+
+# REUSABLE WORKFLOW with INPUTS
+# to keep this workflow simple, assumptions are made:
+# - uses AWS S3 backend for tfstate storage with DynamoDB for state locking
+# - uses OIDC-based AWS authentication (no long-lived credentials)
+# - leverage GitHub Environments for deployment protection rules (required reviewers, etc.)
+# - intended to run after a successful terraform plan workflow
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      aws-region:
+        description: AWS region used for OIDC authentication and the S3 backend
+        required: false
+        default: eu-west-1
+        type: string
+      backend-config:
+        description: |
+          Backend configuration values, one per line in key=value format.
+          Each non-empty line is forwarded as a separate -backend-config flag to terraform init.
+          Example:
+            bucket=my-tfstate-bucket
+            key=envs/prod/terraform.tfstate
+            dynamodb_table=my-tfstate-lock
+        required: false
+        default: ""
+        type: string
+      environment:
+        description: GitHub environment name — enables deployment protection rules when set
+        required: false
+        default: ""
+        type: string
+      terraform-var-file:
+        description: Path to a .tfvars file relative to working-directory
+        required: false
+        default: ""
+        type: string
+      terraform-version:
+        description: Terraform version to install (e.g. "1.11.0" or "latest")
+        required: false
+        default: latest
+        type: string
+      working-directory:
+        description: Directory containing the terraform configuration files
+        required: false
+        default: "."
+        type: string
+
+    secrets:
+      AWS_ROLE_ARN:
+        description: IAM role ARN to assume via OIDC for AWS authentication
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+
+  terraform-apply:
+
+    name: Terraform - Apply
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: ${{ inputs.terraform-version }}
+
+      - name: Terraform Init
+        id: init
+        env:
+          TF_BACKEND_CONFIG: ${{ inputs.backend-config }}
+        run: |
+          tf_init_args=""
+          while IFS= read -r config; do
+            [[ -z "${config}" ]] && continue
+            tf_init_args="${tf_init_args} -backend-config=${config}"
+          done <<< "${TF_BACKEND_CONFIG}"
+          # shellcheck disable=SC2086
+          terraform init -no-color ${tf_init_args}
+        shell: bash
+
+      - name: Terraform Apply
+        id: apply
+        env:
+          TF_VAR_FILE: ${{ inputs.terraform-var-file }}
+        run: |
+          tf_apply_args="-no-color -auto-approve"
+          if [[ -n "${TF_VAR_FILE}" ]]; then
+            tf_apply_args="${tf_apply_args} -var-file=${TF_VAR_FILE}"
+          fi
+          # shellcheck disable=SC2086
+          terraform apply ${tf_apply_args}
+        shell: bash
