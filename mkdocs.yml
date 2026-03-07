@@ -38,6 +38,7 @@ nav:
       - Overview: pipeline/overview.md
       - Branches: pipeline/branches.md
       - Dependabot: pipeline/dependabot.md
+      - Renovate: pipeline/renovate.md
       - MkDocs to Cloudflare Pages: pipeline/mkdocs-cloudflare.md
   - Security:
       - Overview: security/overview.md
