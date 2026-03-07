@@ -38,6 +38,7 @@ nav:
       - Overview: pipeline/overview.md
       - Branches: pipeline/branches.md
       - Dependabot: pipeline/dependabot.md
+      - Terraform: pipeline/terraform.md
   - Security:
       - Overview: security/overview.md
   - Testing:
