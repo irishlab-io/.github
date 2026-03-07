@@ -23,7 +23,7 @@ jobs:
     name: Call Prek
     uses: irishlab-io/.github/.github/workflows/reusable-prek.yml@main
     with:
-      skips: "ggshield, pin-github-action"
+      skips: "actionlint,ggshield,pin-github-action"
 
   secret:
     needs:
