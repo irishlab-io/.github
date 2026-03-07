@@ -14,7 +14,7 @@ concurrency:
 jobs:
 
   pinned-actions:
-    name: Call Ensure SHA Pinned Actions
-    uses: irishlab-io/.github/.github/workflows/reusable-ensure-pin-actions.yml@main
+    name: Call GH Pinned Actions
+    uses: irishlab-io/.github/.github/workflows/reusable-gh-pin-actions.yml@main
     with:
       allowlist: "${{ github.repository_owner }}/"
