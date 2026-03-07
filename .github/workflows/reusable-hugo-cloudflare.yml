@@ -60,6 +60,16 @@ on: # yamllint disable-line rule:truthy
         required: false
         default: .
         type: string
+      custom-domain:
+        description: >
+          Custom domain to associate with the Cloudflare Pages project
+          (e.g. blog.example.com). Leave empty to skip domain registration.
+          If the domain zone is managed by Cloudflare the DNS CNAME record
+          is provisioned automatically. For external zones create a CNAME
+          pointing to <project>.pages.dev at your DNS provider.
+        required: false
+        default: ""
+        type: string
 
     secrets:
       CLOUDFLARE_API_TOKEN:
@@ -143,3 +153,30 @@ jobs:
             --branch=${{ github.ref_name }}
             --commit-hash=${{ github.sha }}
             --commit-dirty=false
+
+      - name: Configure custom domain for Cloudflare Pages
+        if: inputs.custom-domain != ''
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PROJECT}/domains" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"name\": \"${CUSTOM_DOMAIN}\"}")
+
+          http_code=$(echo "${response}" | tail -n1)
+          body=$(echo "${response}" | head -n-1)
+
+          if [[ "${http_code}" == "200" ]]; then
+            echo "Custom domain ${CUSTOM_DOMAIN} successfully registered."
+          elif [[ "${http_code}" == "409" ]]; then
+            echo "Custom domain ${CUSTOM_DOMAIN} is already associated with the project (idempotent)."
+          else
+            echo "Failed to register custom domain '${CUSTOM_DOMAIN}' (HTTP ${http_code}): ${body}"
+            exit 1
+          fi
+        shell: bash
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_PROJECT: ${{ inputs.cloudflare-project-name }}
+          CUSTOM_DOMAIN: ${{ inputs.custom-domain }}

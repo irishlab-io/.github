@@ -16,6 +16,8 @@ The workflow performs the following steps:
 3. **Cache** Hugo modules and built resources for faster subsequent runs
 4. **Build** the Hugo site with minification and garbage collection enabled
 5. **Deploy** the built site to Cloudflare Pages using the Wrangler CLI
+6. **Register custom domain** (optional) — associate a custom hostname and
+   auto-provision DNS if the zone is managed by Cloudflare
 
 ---
 
@@ -195,6 +197,7 @@ jobs:
 | Input | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `cloudflare-project-name` | `string` | **Yes** | — | Name of the Cloudflare Pages project |
+| `custom-domain` | `string` | No | `""` | Custom domain to associate (e.g. `blog.example.com`) |
 | `environment` | `string` | No | `production` | GitHub environment name |
 | `hugo-extended` | `boolean` | No | `true` | Install the Hugo extended edition (SCSS/SASS) |
 | `hugo-version` | `string` | No | `latest` | Hugo version to install (e.g. `0.147.0`) |
@@ -223,6 +226,78 @@ If you have not yet created a Cloudflare Pages project, follow these steps:
 
 For branch-based preview deployments, Cloudflare Pages automatically creates
 a unique URL for every branch deployed.
+
+---
+
+## Custom Domain & DNS
+
+The optional `custom-domain` input attaches a hostname to your Cloudflare
+Pages project after each deployment. The workflow calls the
+[Cloudflare Pages domains API](https://developers.cloudflare.com/api/resources/pages/subresources/domains/methods/add/)
+and is idempotent — running it again when the domain is already registered
+will not return an error.
+
+### API Token permissions
+
+No additional permissions are needed beyond the base requirement.
+`Account: Cloudflare Pages: Edit` covers custom domain registration.
+
+If you also want the workflow to manage DNS records for a zone that is
+**not** on Cloudflare, you must handle that at your external DNS provider
+(see below). For Cloudflare-managed zones, DNS is provisioned automatically.
+
+### Domain on Cloudflare DNS (recommended)
+
+When the zone for your custom domain is already in your Cloudflare account:
+
+1. Set the `custom-domain` input to the hostname (e.g. `blog.example.com`).
+2. The workflow registers the domain with the Pages project.
+3. Cloudflare automatically creates a `CNAME` DNS record pointing to
+   `<project>.pages.dev`.
+4. A free TLS certificate is provisioned automatically — no extra steps.
+
+```yaml
+jobs:
+  deploy:
+    uses: irishlab-io/.github/.github/workflows/reusable-hugo-cloudflare.yml@main
+    with:
+      cloudflare-project-name: my-blog
+      custom-domain: blog.example.com
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+```
+
+### Domain on an External DNS Provider
+
+When the zone is managed outside Cloudflare (e.g. Route 53, Namecheap):
+
+1. Set the `custom-domain` input — the workflow registers the domain with
+   the Pages project and requests a TLS certificate from Cloudflare.
+2. Add the appropriate DNS record at your provider:
+
+   - **Subdomain** (e.g. `blog.example.com`) — create a `CNAME` record:
+
+     | Type | Host | Value |
+     | --- | --- | --- |
+     | `CNAME` | `blog` | `<project>.pages.dev` |
+
+   - **Apex domain** (e.g. `example.com`) — `CNAME` is not valid at the zone
+     apex. Use an `ALIAS` or `ANAME` record if your provider supports it, or
+     delegate the zone to Cloudflare to benefit from CNAME flattening:
+
+     | Type | Host | Value |
+     | --- | --- | --- |
+     | `ALIAS` / `ANAME` | `@` | `<project>.pages.dev` |
+
+> **DNS propagation:** Changes can take up to 48 hours to propagate globally,
+> though most providers resolve within minutes.
+
+### Removing a custom domain
+
+To detach a domain from the Pages project, call the Cloudflare API manually
+or use the Cloudflare dashboard (**Pages → your project → Custom domains →
+Remove**). Remove the corresponding DNS record at your provider afterwards.
 
 ---
 
