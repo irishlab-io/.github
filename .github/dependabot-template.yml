@@ -1,0 +1,27 @@
+---
+# Dependabot template for new repositories
+# This file is synced to new repositories during onboarding (only if no dependabot.yml exists)
+# Teams should extend this file with their specific package ecosystems
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "01:00"
+      timezone: "America/Toronto"
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
