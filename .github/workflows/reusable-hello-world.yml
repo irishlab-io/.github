@@ -59,9 +59,3 @@ jobs:
           ts-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           ts-client-secret: ${{ secrets.TS_OAUTH_CLIENT_SECRET }}
           tags: "tag:ci"
-
-      - name: Check Tailscale connection
-        run: |
-          tailscale status
-          tailscale ip -4
-        shell: bash
