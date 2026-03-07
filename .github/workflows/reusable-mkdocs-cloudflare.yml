@@ -1,0 +1,93 @@
+---
+name: Reusable - Deploy MkDocs to Cloudflare Pages
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      cloudflare-project-name:
+        description: Cloudflare Pages project name to deploy to
+        required: true
+        type: string
+      environment:
+        description: GitHub deployment environment name
+        required: false
+        type: string
+        default: production
+      mkdocs-site-dir:
+        description: MkDocs output directory (matches site_dir in mkdocs.yml)
+        required: false
+        type: string
+        default: site
+      python-version:
+        description: Python version to use
+        required: false
+        type: string
+        default: "3.14"
+      uv-version:
+        description: UV version to use
+        required: false
+        type: string
+        default: "latest"
+      working-directory:
+        description: Working directory containing mkdocs.yml
+        required: false
+        type: string
+        default: "."
+    secrets:
+      CLOUDFLARE_ACCOUNT_ID:
+        description: Cloudflare account ID
+        required: true
+      CLOUDFLARE_API_TOKEN:
+        description: Cloudflare API token with Cloudflare Pages edit permissions
+        required: true
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    name: Build & Deploy MkDocs to Cloudflare Pages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@7edac99f961f18b581bbd960d59d049f04c0002f # v6.4.1
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          version: ${{ inputs.uv-version }}
+
+      - name: Setup Python ${{ inputs.python-version }}
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          uv sync --all-extras --dev --frozen
+        shell: bash
+
+      - name: Build MkDocs site
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          uv run mkdocs build --strict --site-dir ${{ inputs.mkdocs-site-dir }}
+        shell: bash
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ inputs.working-directory }}/${{ inputs.mkdocs-site-dir }} --project-name=${{ inputs.cloudflare-project-name }} --commit-dirty=true
+
+      - name: Minimize UV cache
+        run: |
+          uv cache prune --ci
+        shell: bash
