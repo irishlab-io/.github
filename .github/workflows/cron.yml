@@ -22,6 +22,6 @@ jobs:
   secret:
     needs:
       - pre-commit
-    name: Call Secret Scanning
-    uses: irishlab-io/.github/.github/workflows/reusable-secret.yml@main
+    name: Call Git Guardian
+    uses: irishlab-io/.github/.github/workflows/reusable-gitguardian.yml@main
     secrets: inherit
