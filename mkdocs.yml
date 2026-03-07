@@ -38,6 +38,8 @@ nav:
       - Overview: pipeline/overview.md
       - Branches: pipeline/branches.md
       - Dependabot: pipeline/dependabot.md
+      - Renovate: pipeline/renovate.md
+      - MkDocs to Cloudflare Pages: pipeline/mkdocs-cloudflare.md
       - Reusable Workflows:
           - Ansible Lint: pipeline/reusable-ansible-lint.md
           - Docker Build and Push: pipeline/reusable-docker-build.md

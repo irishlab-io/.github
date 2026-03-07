@@ -1,0 +1,202 @@
+---
+name: Reusable - Organization Repository Sync
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      dry_run:
+        description: Perform a dry run without making any changes
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      IRISHLAB_BOT_APP_ID:
+        required: true
+        description: GitHub App ID for bot authentication
+      IRISHLAB_BOT_PRIVATE_KEY:
+        required: true
+        description: GitHub App private key for bot authentication
+
+jobs:
+  sync:
+    name: Sync All Organization Repositories
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Generate Token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        id: generate-token
+        with:
+          app-id: "${{ secrets.IRISHLAB_BOT_APP_ID }}"
+          private-key: "${{ secrets.IRISHLAB_BOT_PRIVATE_KEY }}"
+          owner: "${{ github.repository_owner }}"
+
+      - name: Sync Settings and Rulesets to All Repositories
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          ORG: ${{ github.repository_owner }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          echo "Listing all active repositories in ${ORG}..."
+          REPOS=$(gh repo list "${ORG}" \
+            --json name,isArchived,isTemplate \
+            --limit 1000 \
+            --jq '.[] | select(.isArchived == false and .isTemplate == false) | .name')
+
+          REPO_COUNT=$(echo "${REPOS}" | grep -c . || true)
+          echo "Found ${REPO_COUNT} active non-template repositories."
+
+          MAIN_RULESET_NAME=$(jq -r '.name' rulesets/main.json)
+          MAIN_RULESET_PAYLOAD=$(jq '{
+            name: .name,
+            target: .target,
+            enforcement: .enforcement,
+            bypass_actors: .bypass_actors,
+            conditions: .conditions,
+            rules: .rules
+          }' rulesets/main.json)
+
+          TAG_RULESET_NAME=$(jq -r '.name' rulesets/tag.json)
+          TAG_RULESET_PAYLOAD=$(jq '{
+            name: .name,
+            target: .target,
+            enforcement: .enforcement,
+            bypass_actors: .bypass_actors,
+            conditions: .conditions,
+            rules: .rules
+          }' rulesets/tag.json)
+
+          for REPO in ${REPOS}; do
+            if [ "${REPO}" = ".github" ]; then
+              echo "Skipping .github repository (source of truth)."
+              continue
+            fi
+
+            echo "---"
+            echo "Processing ${ORG}/${REPO}..."
+
+            if [ "${DRY_RUN}" = "true" ]; then
+              echo "  [DRY RUN] Would configure settings, rulesets, and vulnerability alerts."
+              continue
+            fi
+
+            # Configure repository settings
+            if gh api -X PATCH "/repos/${ORG}/${REPO}" \
+              -F delete_branch_on_merge=true \
+              -F allow_squash_merge=true \
+              -F allow_merge_commit=false \
+              -F allow_rebase_merge=false \
+              -F has_wiki=false \
+              -F has_projects=false \
+              --silent 2>/dev/null; then
+              echo "  Settings configured."
+            else
+              echo "  Warning: Could not configure settings."
+            fi
+
+            # Apply branch ruleset
+            EXISTING_ID=$(gh api "/repos/${ORG}/${REPO}/rulesets" \
+              --jq ".[] | select(.name == \"${MAIN_RULESET_NAME}\") | .id" 2>/dev/null || echo "")
+
+            if [ -n "${EXISTING_ID}" ]; then
+              if echo "${MAIN_RULESET_PAYLOAD}" | gh api -X PUT \
+                "/repos/${ORG}/${REPO}/rulesets/${EXISTING_ID}" --input - --silent 2>/dev/null; then
+                echo "  Branch ruleset updated (ID: ${EXISTING_ID})."
+              else
+                echo "  Warning: Could not update branch ruleset."
+              fi
+            else
+              if echo "${MAIN_RULESET_PAYLOAD}" | gh api -X POST \
+                "/repos/${ORG}/${REPO}/rulesets" --input - --silent 2>/dev/null; then
+                echo "  Branch ruleset created."
+              else
+                echo "  Warning: Could not create branch ruleset."
+              fi
+            fi
+
+            # Apply tag ruleset
+            EXISTING_ID=$(gh api "/repos/${ORG}/${REPO}/rulesets" \
+              --jq ".[] | select(.name == \"${TAG_RULESET_NAME}\") | .id" 2>/dev/null || echo "")
+
+            if [ -n "${EXISTING_ID}" ]; then
+              if echo "${TAG_RULESET_PAYLOAD}" | gh api -X PUT \
+                "/repos/${ORG}/${REPO}/rulesets/${EXISTING_ID}" --input - --silent 2>/dev/null; then
+                echo "  Tag ruleset updated (ID: ${EXISTING_ID})."
+              else
+                echo "  Warning: Could not update tag ruleset."
+              fi
+            else
+              if echo "${TAG_RULESET_PAYLOAD}" | gh api -X POST \
+                "/repos/${ORG}/${REPO}/rulesets" --input - --silent 2>/dev/null; then
+                echo "  Tag ruleset created."
+              else
+                echo "  Warning: Could not create tag ruleset."
+              fi
+            fi
+
+            # Enable vulnerability alerts
+            if gh api -X PUT "/repos/${ORG}/${REPO}/vulnerability-alerts" \
+              --silent 2>/dev/null; then
+              echo "  Vulnerability alerts enabled."
+            else
+              echo "  Warning: Could not enable vulnerability alerts."
+            fi
+
+            echo "  Done."
+          done
+
+          echo "---"
+          echo "Organization sync complete."
+        shell: bash
+
+      - name: Sync Labels to All Repositories
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          ORG: ${{ github.repository_owner }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          echo "Syncing labels to all active repositories in ${ORG}..."
+          pip install pyyaml -q
+          python3 - << 'PYEOF'
+          import yaml, subprocess, sys, os
+          org = os.environ['ORG']
+          dry_run = os.environ.get('DRY_RUN', 'false').lower() == 'true'
+
+          result = subprocess.run(
+              ['gh', 'repo', 'list', org,
+               '--json', 'name,isArchived,isTemplate',
+               '--limit', '1000',
+               '--jq', '.[] | select(.isArchived == false and .isTemplate == false) | .name'],
+              capture_output=True, text=True
+          )
+          repos = [r for r in result.stdout.strip().split('\n') if r and r != '.github']
+
+          with open('.github/labels.yml') as f:
+              labels = yaml.safe_load(f)
+
+          print(f"Syncing {len(labels)} labels to {len(repos)} repositories...")
+
+          for repo in repos:
+              if dry_run:
+                  print(f"  [DRY RUN] Would sync labels to {org}/{repo}")
+                  continue
+              failed = 0
+              for label in labels:
+                  res = subprocess.run([
+                      'gh', 'label', 'create', label['name'],
+                      '--color', label['color'],
+                      '--description', label.get('description', ''),
+                      '--repo', f'{org}/{repo}',
+                      '--force'
+                  ], capture_output=True, text=True)
+                  if res.returncode != 0:
+                      failed += 1
+              status = f"failed {failed}" if failed else "ok"
+              print(f"  {org}/{repo}: labels synced ({status}).")
+          PYEOF
+          echo "Label sync complete."
+        shell: bash

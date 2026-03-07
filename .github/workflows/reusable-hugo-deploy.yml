@@ -1,0 +1,106 @@
+---
+name: Reusable - Hugo Deploy to GitHub Pages
+
+# REUSABLE WORKFLOW with INPUTS
+# to keep this workflow simple, assumptions are made:
+# - GitHub Pages is already configured on the target repository (source: GitHub Actions)
+# - Hugo themes managed as git submodules are checked out automatically
+# - The Hugo site is built and deployed to GitHub Pages on every call
+# - The workflow requires `pages: write` and `id-token: write` permissions in the caller
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      hugo-version:
+        description: Hugo version to install (e.g. "0.147.0" or "latest")
+        required: false
+        default: latest
+        type: string
+      hugo-extended:
+        description: Use Hugo extended edition (required for SCSS/SASS support)
+        required: false
+        default: true
+        type: boolean
+      publish-dir:
+        description: Directory where Hugo outputs the built site
+        required: false
+        default: ./public
+        type: string
+      hugo-args:
+        description: Additional arguments to pass to the hugo build command
+        required: false
+        default: --minify
+        type: string
+      submodules:
+        description: Checkout strategy for git submodules ("true", "false", or "recursive")
+        required: false
+        default: "true"
+        type: string
+
+    outputs:
+      page-url:
+        description: URL of the deployed GitHub Pages site
+        value: ${{ jobs.deploy.outputs.page-url }}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+
+  build:
+    name: Hugo - Build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          submodules: ${{ inputs.submodules }}
+          fetch-depth: 0
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@75d2e84710de30f6ff7268e08f310b60ef14033f # v3.0.0
+        with:
+          hugo-version: ${{ inputs.hugo-version }}
+          extended: ${{ inputs.hugo-extended }}
+
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+
+      - name: Build Hugo site
+        run: |
+          hugo ${{ inputs.hugo-args }} --baseURL "${{ steps.pages.outputs.base_url }}/"
+        shell: bash
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: ${{ inputs.publish-dir }}
+
+  deploy:
+    name: Hugo - Deploy
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    outputs:
+      page-url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

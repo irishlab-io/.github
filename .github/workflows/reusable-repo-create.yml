@@ -1,0 +1,224 @@
+---
+name: Reusable - Repository Creation
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      config_files:
+        description: |
+          Space-separated list of repos/*.yml config file paths to process.
+          Usually the files added or modified in the merged PR.
+        required: true
+        type: string
+    secrets:
+      IRISHLAB_BOT_APP_ID:
+        required: true
+        description: GitHub App ID for bot authentication
+      IRISHLAB_BOT_PRIVATE_KEY:
+        required: true
+        description: GitHub App private key for bot authentication
+
+jobs:
+  create:
+    name: Create Repositories from Config
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Generate Token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        id: generate-token
+        with:
+          app-id: "${{ secrets.IRISHLAB_BOT_APP_ID }}"
+          private-key: "${{ secrets.IRISHLAB_BOT_PRIVATE_KEY }}"
+          owner: "${{ github.repository_owner }}"
+
+      - name: Install dependencies
+        run: pip install pyyaml -q
+        shell: bash
+
+      - name: Create and Onboard Repositories
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          ORG: ${{ github.repository_owner }}
+          CONFIG_FILES: ${{ inputs.config_files }}
+        run: |
+          python3 - << 'PYEOF'
+          import yaml, subprocess, sys, os, json
+
+          org = os.environ['ORG']
+          config_files = os.environ['CONFIG_FILES'].split()
+
+          def gh(*args, check=True, capture=True):
+              """Run a gh CLI command and return stdout."""
+              result = subprocess.run(
+                  ['gh'] + list(args),
+                  capture_output=capture, text=True
+              )
+              if check and result.returncode != 0:
+                  print(f"  gh error: {result.stderr.strip()}", file=sys.stderr)
+              return result
+
+          def repo_exists(org, name):
+              r = gh('api', f'/repos/{org}/{name}', check=False)
+              return r.returncode == 0
+
+          for config_file in config_files:
+              if not config_file.endswith('.yml') and not config_file.endswith('.yaml'):
+                  continue
+              # Skip the template file
+              if os.path.basename(config_file) == '_template.yml':
+                  print(f"Skipping template file: {config_file}")
+                  continue
+              if not os.path.exists(config_file):
+                  print(f"File not found (deleted?): {config_file}", file=sys.stderr)
+                  continue
+
+              with open(config_file) as f:
+                  cfg = yaml.safe_load(f)
+
+              repo_name = (cfg.get('name') or '').strip()
+              if not repo_name:
+                  print(f"ERROR: 'name' field is empty in {config_file}. Skipping.", file=sys.stderr)
+                  continue
+
+              description = (cfg.get('description') or '').strip()
+              visibility   = cfg.get('visibility', 'private')
+              team         = (cfg.get('team') or '').strip()
+              topics       = cfg.get('topics') or []
+              template     = (cfg.get('template') or '').strip()
+              features     = cfg.get('features') or {}
+              has_wiki         = str(features.get('wiki', False)).lower()
+              has_projects     = str(features.get('projects', False)).lower()
+              has_discussions  = str(features.get('discussions', False)).lower()
+
+              print(f"\n{'='*60}")
+              print(f"Processing: {org}/{repo_name}")
+              print(f"  description : {description}")
+              print(f"  visibility  : {visibility}")
+              print(f"  team        : {team or '(none)'}")
+              print(f"  topics      : {topics}")
+              print(f"  template    : {template or '(none)'}")
+              print(f"  features    : wiki={has_wiki} projects={has_projects} discussions={has_discussions}")
+
+              # ── Create repository ──────────────────────────────────────────
+              if repo_exists(org, repo_name):
+                  print(f"  Repository already exists — updating settings only.")
+                  gh('api', '-X', 'PATCH', f'/repos/{org}/{repo_name}',
+                     '-f', f'description={description}',
+                     '-f', f'visibility={visibility}',
+                     '-F', f'has_wiki={has_wiki}',
+                     '-F', f'has_projects={has_projects}',
+                     '-F', f'has_discussions={has_discussions}',
+                     '--silent', check=False)
+              else:
+                  print(f"  Creating repository...")
+                  if template:
+                      # Create from template
+                      template_owner, template_repo = template.split('/', 1) if '/' in template else (org, template)
+                      create_result = gh(
+                          'api', '-X', 'POST',
+                          f'/repos/{template_owner}/{template_repo}/generate',
+                          '-f', f'owner={org}',
+                          '-f', f'name={repo_name}',
+                          '-f', f'description={description}',
+                          '-F', f'private={"true" if visibility == "private" else "false"}',
+                          '-F', 'include_all_branches=false',
+                          check=False
+                      )
+                  else:
+                      create_result = gh(
+                          'api', '-X', 'POST', f'/orgs/{org}/repos',
+                          '-f', f'name={repo_name}',
+                          '-f', f'description={description}',
+                          '-f', f'visibility={visibility}',
+                          '-F', 'auto_init=true',
+                          '-F', f'has_wiki={has_wiki}',
+                          '-F', f'has_projects={has_projects}',
+                          '--silent',
+                          check=False
+                      )
+
+                  if create_result.returncode != 0:
+                      print(f"  ERROR: Could not create repository. Skipping onboarding.", file=sys.stderr)
+                      continue
+                  print(f"  Repository created successfully.")
+
+              # ── Assign team ────────────────────────────────────────────────
+              if team:
+                  print(f"  Assigning team '{team}' with maintain permission...")
+                  team_result = gh('api', '-X', 'PUT',
+                                   f'/orgs/{org}/teams/{team}/repos/{org}/{repo_name}',
+                                   '-f', 'permission=maintain',
+                                   '--silent', check=False)
+                  if team_result.returncode != 0:
+                      print(f"  Warning: Could not assign team '{team}'.", file=sys.stderr)
+                  else:
+                      print(f"  Team assigned.")
+
+              # ── Apply topics ───────────────────────────────────────────────
+              if topics:
+                  print(f"  Applying topics...")
+                  topics_json = json.dumps({'names': topics})
+                  topics_result = subprocess.run(
+                      ['gh', 'api', '-X', 'PUT',
+                       f'/repos/{org}/{repo_name}/topics',
+                       '--input', '-', '--silent'],
+                      input=topics_json, capture_output=True, text=True
+                  )
+                  if topics_result.returncode != 0:
+                      print(f"  Warning: Could not apply topics.", file=sys.stderr)
+                  else:
+                      print(f"  Topics applied.")
+
+              print(f"  Configuration complete for {org}/{repo_name}.")
+
+          print("\nAll config files processed.")
+          PYEOF
+        shell: bash
+
+      - name: Trigger Onboarding for Each New Repository
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          ORG: ${{ github.repository_owner }}
+          CONFIG_FILES: ${{ inputs.config_files }}
+        run: |
+          python3 - << 'PYEOF'
+          import yaml, subprocess, json, os, sys
+
+          org = os.environ['ORG']
+          config_files = os.environ['CONFIG_FILES'].split()
+
+          for config_file in config_files:
+              if os.path.basename(config_file) == '_template.yml':
+                  continue
+              if not os.path.exists(config_file):
+                  continue
+
+              with open(config_file) as f:
+                  cfg = yaml.safe_load(f)
+
+              repo_name = (cfg.get('name') or '').strip()
+              if not repo_name:
+                  continue
+
+              print(f"Triggering onboarding for {org}/{repo_name}...")
+              payload = json.dumps({
+                  'event_type': 'repository-created',
+                  'client_payload': {'repo_name': repo_name}
+              })
+              result = subprocess.run(
+                  ['gh', 'api', '-X', 'POST',
+                   f'/repos/{org}/.github/dispatches',
+                   '--input', '-'],
+                  input=payload, capture_output=True, text=True
+              )
+              if result.returncode == 0:
+                  print(f"  Onboarding triggered for {repo_name}.")
+              else:
+                  print(f"  Warning: Could not trigger onboarding: {result.stderr}", file=sys.stderr)
+          PYEOF
+        shell: bash
