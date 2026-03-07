@@ -14,6 +14,13 @@ on: # yamllint disable-line rule:truthy
         type: boolean
         required: false
         default: false
+    secrets:
+      TS_OAUTH_CLIENT_ID:
+        description: Tailscale OAuth client ID
+        required: true
+      TS_OAUTH_CLIENT_SECRET:
+        description: Tailscale OAuth client secret
+        required: true
 
 jobs:
   hello-world:
@@ -43,4 +50,17 @@ jobs:
       - name: Run a one-line script with string inputs
         if: inputs.enable
         run: echo Hello, world ${{ inputs.comments }} !
+        shell: bash
+
+      - name: Call Tailscale Action
+        id: tailscale
+        uses: irishlab-io/.github/.github/actions/tailscale@main
+        with:
+          ts-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          ts-client-secret: ${{ secrets.TS_OAUTH_CLIENT_SECRET }}
+          tags: "tag:ci"
+
+      - name: Get Tailscale IP address
+        run: |
+          tailscale ip -4
         shell: bash

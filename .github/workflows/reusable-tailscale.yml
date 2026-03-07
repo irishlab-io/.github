@@ -1,0 +1,27 @@
+---
+name: Reusable - Connect to Tailscale
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    secrets:
+      TS_OAUTH_CLIENT_ID:
+        description: Tailscale OAuth Client ID
+        required: true
+      TS_OAUTH_CLIENT_SECRET:
+        description: Tailscale OAuth Client Secret
+        required: true
+
+jobs:
+  tailscale:
+    name: Connect to Tailscale
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+
+      - name: Connect to Tailnet
+        uses: tailscale/github-action@v4.1.1
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_CLIENT_SECRET }}
+          tags: "tag:ci"

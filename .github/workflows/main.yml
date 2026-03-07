@@ -27,3 +27,8 @@ jobs:
     name: Call Git Guardian
     uses: irishlab-io/.github/.github/workflows/reusable-gitguardian.yml@main
     secrets: inherit
+
+  hello-world:
+    name: Call Hello World
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
+    secrets: inherit
