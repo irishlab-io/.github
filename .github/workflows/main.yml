@@ -27,3 +27,10 @@ jobs:
     name: Call Git Guardian
     uses: irishlab-io/.github/.github/workflows/reusable-gitguardian.yml@main
     secrets: inherit
+
+  vpn:
+    needs:
+      - pre-commit
+    name: Call Tailscale
+    uses: irishlab-io/.github/.github/workflows/reusable-tailscale.yml@main
+    secrets: inherit
