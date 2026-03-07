@@ -24,6 +24,16 @@ on: # yamllint disable-line rule:truthy
         description: Enable Pytest for unit tests
         required: false
         type: boolean
+      pytest-marker-included:
+        default: ""
+        description: Pytest marker expression to include, passed to pytest with -m
+        required: false
+        type: string
+      pytest-marker-excluded:
+        default: ""
+        description: Pytest marker expression to exclude, merged into pytest -m as not (...)
+        required: false
+        type: string
       python-version:
         default: "3.14"
         description: Python version to use for a single job
@@ -96,7 +106,20 @@ jobs:
         if: ${{ inputs.pytest-enable }}
         id: pytest
         run: |
-          uv run pytest
+          include_markers='${{ inputs.pytest-marker-included }}'
+          exclude_markers='${{ inputs.pytest-marker-excluded }}'
+
+          pytest_args=()
+
+          if [[ -n "$include_markers" && -n "$exclude_markers" ]]; then
+            pytest_args+=("-m" "($include_markers) and not ($exclude_markers)")
+          elif [[ -n "$include_markers" ]]; then
+            pytest_args+=("-m" "$include_markers")
+          elif [[ -n "$exclude_markers" ]]; then
+            pytest_args+=("-m" "not ($exclude_markers)")
+          fi
+
+          uv run pytest "${pytest_args[@]}"
         shell: bash
 
       - name: Minimize UV cache
