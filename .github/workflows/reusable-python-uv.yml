@@ -14,6 +14,11 @@ on: # yamllint disable-line rule:truthy
         description: JSON array of runner labels to use for a matrix build
         required: false
         type: string
+      playwright-enable:
+        default: false
+        description: Install Playwright browsers and OS dependencies before running Pytest
+        required: false
+        type: boolean
       pytest-enable:
         default: true
         description: Enable Pytest for unit tests
@@ -76,9 +81,12 @@ jobs:
       - name: Install dependencies
         run: |
           uv sync --all-extras --dev --frozen
+          if [[ "${{ inputs.pytest-enable }}" == 'true' && "${{ inputs.playwright-enable }}" == 'true' ]]; then
+            uv run playwright install --with-deps
+          fi
         shell: bash
 
-      - name: build
+      - name: Build project
         id: build
         run: |
           uv build
