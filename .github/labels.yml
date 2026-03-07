@@ -1,0 +1,70 @@
+---
+# Standard organization labels
+# Used by EndBug/label-sync action and the repository onboarding workflow
+- name: "type:feature"
+  color: "0075ca"
+  description: "New feature or request"
+
+- name: "type:bug"
+  color: "d73a4a"
+  description: "Something isn't working"
+
+- name: "type:docs"
+  color: "0052cc"
+  description: "Documentation update"
+
+- name: "type:maintenance"
+  color: "e4e669"
+  description: "Maintenance or refactoring"
+
+- name: "type:security"
+  color: "ee0701"
+  description: "Security related changes"
+
+- name: "priority:critical"
+  color: "b60205"
+  description: "Critical priority issue"
+
+- name: "priority:high"
+  color: "d93f0b"
+  description: "High priority issue"
+
+- name: "priority:medium"
+  color: "e4e669"
+  description: "Medium priority issue"
+
+- name: "priority:low"
+  color: "0e8a16"
+  description: "Low priority issue"
+
+- name: "area:ci"
+  color: "bfd4f2"
+  description: "CI/CD pipeline changes"
+
+- name: "area:security"
+  color: "f9d0c4"
+  description: "Security related area"
+
+- name: "area:docs"
+  color: "d4c5f9"
+  description: "Documentation area"
+
+- name: "area:infra"
+  color: "c5def5"
+  description: "Infrastructure related"
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Dependency updates"
+
+- name: "github-actions"
+  color: "000000"
+  description: "GitHub Actions workflow updates"
+
+- name: "docker"
+  color: "0db7ed"
+  description: "Docker related changes"
+
+- name: "python"
+  color: "3572a5"
+  description: "Python related changes"
