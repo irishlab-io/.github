@@ -1,0 +1,45 @@
+---
+# ── REQUIRED ─────────────────────────────────────────────────────────────────
+# Repository name (must match this file's name without the .yml extension).
+# Follow the org naming convention:  svc-|lib-|infra-|sandbox-
+name: "test"
+
+# Short one-line description shown on the GitHub repository page.
+description: "a testing repository for reusable workflows and actions"
+
+# Visibility: private | internal | public
+# Default is private. Use internal for cross-org repos in GitHub Enterprise.
+visibility: private
+
+# ── CLASSIFICATION ────────────────────────────────────────────────────────────
+# Repository type. Controls naming convention validation and team defaults.
+# Options: svc | lib | infra | sandbox
+type: sandbox
+
+# Owning team (must already exist in the org, e.g. backend, platform, frontend)
+team: "PaaS"
+
+# ── OPTIONAL ─────────────────────────────────────────────────────────────────
+# GitHub topics (max 20). Lowercase, hyphens only.
+topics:
+  - test
+#  - python
+#  - api
+#  - fastapi
+
+# Optional: bootstrap from an existing template repository in the org.
+# Leave empty to start from scratch (auto-initialized with a default README).
+template: ""
+#  template: irishlab-io/template-python-service
+
+# ── FEATURES ─────────────────────────────────────────────────────────────────
+# Enable or disable optional GitHub features.
+# These can be changed after creation via the org-wide sync.
+features:
+  wiki: false
+  projects: false
+  discussions: false
+
+# ── NOTES ─────────────────────────────────────────────────────────────────────
+# Free-text notes visible in the PR only (not applied to the repository).
+notes: ""

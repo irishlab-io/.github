@@ -1,0 +1,153 @@
+---
+name: Repository Onboarding & Setup
+description: Workflow to onboard new repositories with standard settings, branch rulesets, and tag rulesets.
+author: irishlab-io
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Run a one-line script
+      run: echo Hello, world!
+      shell: bash
+
+      # - name: Configure Repository Settings
+      #   env:
+      #     GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+      #     ORG: ${{ github.repository_owner }}
+      #     REPO: ${{ inputs.repo_name }}
+      #   run: |
+      #     echo "Configuring settings for ${ORG}/${REPO}..."
+      #     gh api -X PATCH "/repos/${ORG}/${REPO}" \
+      #       -F delete_branch_on_merge=true \
+      #       -F allow_squash_merge=true \
+      #       -F allow_merge_commit=false \
+      #       -F allow_rebase_merge=false \
+      #       -F has_wiki=false \
+      #       -F has_projects=false \
+      #       --silent
+      #     echo "Repository settings configured."
+      #   shell: bash
+
+      # - name: Apply Branch Ruleset
+      #   env:
+      #     GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+      #     ORG: ${{ github.repository_owner }}
+      #     REPO: ${{ inputs.repo_name }}
+      #   run: |
+      #     echo "Applying branch ruleset to ${ORG}/${REPO}..."
+      #     RULESET_NAME=$(jq -r '.name' rulesets/main.json)
+      #     RULESET_PAYLOAD=$(jq '{
+      #       name: .name,
+      #       target: .target,
+      #       enforcement: .enforcement,
+      #       bypass_actors: .bypass_actors,
+      #       conditions: .conditions,
+      #       rules: .rules
+      #     }' rulesets/main.json)
+
+      #     EXISTING_ID=$(gh api "/repos/${ORG}/${REPO}/rulesets" \
+      #       --jq ".[] | select(.name == \"${RULESET_NAME}\") | .id" 2>/dev/null || echo "")
+
+      #     if [ -n "${EXISTING_ID}" ]; then
+      #       echo "Updating existing branch ruleset (ID: ${EXISTING_ID})..."
+      #       echo "${RULESET_PAYLOAD}" | gh api -X PUT \
+      #         "/repos/${ORG}/${REPO}/rulesets/${EXISTING_ID}" --input - --silent
+      #     else
+      #       echo "Creating branch ruleset..."
+      #       echo "${RULESET_PAYLOAD}" | gh api -X POST \
+      #         "/repos/${ORG}/${REPO}/rulesets" --input - --silent
+      #     fi
+      #     echo "Branch ruleset applied."
+      #   shell: bash
+
+      # - name: Apply Tag Ruleset
+      #   env:
+      #     GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+      #     ORG: ${{ github.repository_owner }}
+      #     REPO: ${{ inputs.repo_name }}
+      #   run: |
+      #     echo "Applying tag ruleset to ${ORG}/${REPO}..."
+      #     RULESET_NAME=$(jq -r '.name' rulesets/tag.json)
+      #     RULESET_PAYLOAD=$(jq '{
+      #       name: .name,
+      #       target: .target,
+      #       enforcement: .enforcement,
+      #       bypass_actors: .bypass_actors,
+      #       conditions: .conditions,
+      #       rules: .rules
+      #     }' rulesets/tag.json)
+
+      #     EXISTING_ID=$(gh api "/repos/${ORG}/${REPO}/rulesets" \
+      #       --jq ".[] | select(.name == \"${RULESET_NAME}\") | .id" 2>/dev/null || echo "")
+
+      #     if [ -n "${EXISTING_ID}" ]; then
+      #       echo "Updating existing tag ruleset (ID: ${EXISTING_ID})..."
+      #       echo "${RULESET_PAYLOAD}" | gh api -X PUT \
+      #         "/repos/${ORG}/${REPO}/rulesets/${EXISTING_ID}" --input - --silent
+      #     else
+      #       echo "Creating tag ruleset..."
+      #       echo "${RULESET_PAYLOAD}" | gh api -X POST \
+      #         "/repos/${ORG}/${REPO}/rulesets" --input - --silent
+      #     fi
+      #     echo "Tag ruleset applied."
+      #   shell: bash
+
+      # - name: Sync Dependabot Configuration
+      #   env:
+      #     GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+      #     ORG: ${{ github.repository_owner }}
+      #     REPO: ${{ inputs.repo_name }}
+      #   run: |
+      #     echo "Checking dependabot configuration for ${ORG}/${REPO}..."
+      #     FILE_PATH=".github/dependabot.yml"
+
+      #     EXISTING_SHA=$(gh api "/repos/${ORG}/${REPO}/contents/${FILE_PATH}" \
+      #       --jq '.sha' 2>/dev/null || echo "")
+
+      #     if [ -n "${EXISTING_SHA}" ]; then
+      #       echo "Dependabot config already exists, skipping."
+      #     else
+      #       echo "Creating dependabot configuration..."
+      #       FILE_CONTENT=$(base64 -w 0 < .github/dependabot-template.yml)
+      #       gh api -X PUT "/repos/${ORG}/${REPO}/contents/${FILE_PATH}" \
+      #         -f message="ci: add dependabot configuration [skip ci]" \
+      #         -f content="${FILE_CONTENT}" \
+      #         --silent
+      #       echo "Dependabot configuration created."
+      #     fi
+      #   shell: bash
+
+      # - name: Sync Labels
+      #   env:
+      #     GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+      #     ORG: ${{ github.repository_owner }}
+      #     REPO: ${{ inputs.repo_name }}
+      #   run: |
+      #     echo "Syncing labels for ${ORG}/${REPO}..."
+      #     pip install pyyaml -q
+      #     python3 - << 'PYEOF'
+      #     import yaml, subprocess, sys, os
+      #     org = os.environ['ORG']
+      #     repo = os.environ['REPO']
+      #     with open('.github/labels.yml') as f:
+      #         labels = yaml.safe_load(f)
+      #     failed = 0
+      #     for label in labels:
+      #         result = subprocess.run([
+      #             'gh', 'label', 'create', label['name'],
+      #             '--color', label['color'],
+      #             '--description', label.get('description', ''),
+      #             '--repo', f'{org}/{repo}',
+      #             '--force'
+      #         ], capture_output=True, text=True)
+      #         if result.returncode == 0:
+      #             print(f"  Label '{label['name']}' synced.")
+      #         else:
+      #             print(f"  Warning: Could not sync label '{label['name']}': {result.stderr}", file=sys.stderr)
+      #             failed += 1
+      #     if failed > 0:
+      #         print(f"{failed} label(s) failed to sync.", file=sys.stderr)
+      #     PYEOF
+      #     echo "Labels synced."
+      #   shell: bash

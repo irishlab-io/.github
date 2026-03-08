@@ -13,6 +13,14 @@ concurrency:
 
 jobs:
 
+  gh-pin-actions:
+    name: Call GH Pin Actions
+    permissions:
+      contents: read
+    uses: irishlab-io/.github/.github/workflows/reusable-gh-pin-actions.yml@main
+    with:
+      allowlist: "${{ github.repository_owner }}/"
+
   pre-commit:
     name: Call Prek
     uses: irishlab-io/.github/.github/workflows/reusable-prek.yml@main
@@ -21,6 +29,7 @@ jobs:
 
   secret:
     needs:
+      - gh-pin-actions
       - pre-commit
     name: Call Git Guardian
     uses: irishlab-io/.github/.github/workflows/reusable-gitguardian.yml@main

@@ -1,7 +1,4 @@
 ---
-# Dependabot template for new repositories
-# This file is synced to new repositories during onboarding (only if no dependabot.yml exists)
-# Teams should extend this file with their specific package ecosystems
 version: 2
 updates:
   - package-ecosystem: "github-actions"
