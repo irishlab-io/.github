@@ -68,6 +68,10 @@ repos:
         args:
           - --config
           - .config/.markdown-lint.yml
+        exclude: |
+          (?x)
+          ^docs/.*|
+          ^CHANGELOG.md|
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.38.0
     hooks:
