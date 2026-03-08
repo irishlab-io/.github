@@ -5,7 +5,8 @@ run-name: Continuous Integration for ${{ github.repository_owner }} organization
 on: # yamllint disable-line rule:truthy
   push:
     paths:
-      - 'repos/*.(yml|yaml)'
+      - repos/*.yml
+      - repos/*.yaml
   workflow_dispatch:
     inputs:
       repo_name:
