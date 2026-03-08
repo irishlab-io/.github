@@ -50,24 +50,28 @@ jobs:
             exit 0
           fi
 
-          # Get added/modified repo config files (excluding _template.yml)
+          # Added/modified repo config files (excluding _template.yml)
           if [[ -z "${BEFORE_SHA}" || "${BEFORE_SHA}" =~ ^0+$ ]]; then
-            git diff-tree --root --name-only --diff-filter=ACMR -r "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml'
+            git diff-tree --root --name-only --diff-filter=ACMR -r "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml' \
+              | grep -v '_template\.yml$' || true
           else
-            git diff --name-only --diff-filter=ACMR "${BEFORE_SHA}" "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml'
-          fi | grep -v '_template\.yml$' | sort -u > /tmp/changed_configs
+            git diff --name-only --diff-filter=ACMR "${BEFORE_SHA}" "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml' \
+              | grep -v '_template\.yml$' || true
+          fi | sort -u > /tmp/changed_configs
 
-          # Get deleted repo config files and extract repo names
+          # Deleted repo config files (excluding _template.yml)
           if [[ -z "${BEFORE_SHA}" || "${BEFORE_SHA}" =~ ^0+$ ]]; then
             : # No deletions on initial commit
           else
-            git diff --name-only --diff-filter=D "${BEFORE_SHA}" "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml'
-          fi | grep -v '_template\.yml$' | while read -r f; do
+            git diff --name-only --diff-filter=D "${BEFORE_SHA}" "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml' \
+              | grep -v '_template\.yml$' || true
+          fi | while read -r f; do
+            [[ -z "$f" ]] && continue
             basename "${f}" .yml | sed 's/\.yaml$//'
           done | sort -u > /tmp/deleted_repos
 
-          repos_to_create=$(cat /tmp/changed_configs 2>/dev/null | tr '\n' ' ' | xargs)
-          repos_to_delete=$(cat /tmp/deleted_repos 2>/dev/null | tr '\n' ' ' | xargs)
+          repos_to_create=$(tr '\n' ' ' < /tmp/changed_configs | xargs || true)
+          repos_to_delete=$(tr '\n' ' ' < /tmp/deleted_repos | xargs || true)
 
           echo "repos_to_create=${repos_to_create}" >> "${GITHUB_OUTPUT}"
           echo "repos_to_delete=${repos_to_delete}" >> "${GITHUB_OUTPUT}"
