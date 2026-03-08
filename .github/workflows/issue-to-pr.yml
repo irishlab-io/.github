@@ -1,0 +1,267 @@
+---
+name: Repository Request - Issue to PR
+run-name: Repository Request issue ${{ github.event.issue.number }} by ${{ github.actor }}
+
+on: # yamllint disable-line rule:truthy
+  issues:
+    types:
+      - opened
+      - labeled
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+
+  create-pr:
+    name: Generate config and open PR
+    if: contains(github.event.issue.labels.*.name, 'repo-request')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Parse issue body and generate YAML config
+        id: parse
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        run: |
+          python3 - << 'PYEOF'
+          import os
+          import re
+          import sys
+          import yaml
+
+          body = os.environ.get("ISSUE_BODY", "")
+          issue_number = os.environ.get("ISSUE_NUMBER", "")
+          issue_author = os.environ.get("ISSUE_AUTHOR", "")
+
+          def extract_field(body, heading):
+              """Extract the value that follows a ### heading in a GitHub issue form body."""
+              pattern = rf"###\s+{re.escape(heading)}\s*\n+(.*?)(?=\n###|\Z)"
+              match = re.search(pattern, body, re.DOTALL)
+              if not match:
+                  return ""
+              value = match.group(1).strip()
+              if value in ("_No response_", ""):
+                  return ""
+              return value
+
+          # ── Parse form fields ──────────────────────────────────────────────
+          name         = extract_field(body, "Repository Name").strip().lower()
+          description  = extract_field(body, "Description").strip()
+          repo_type    = extract_field(body, "Repository Type").strip().lower()
+          team         = extract_field(body, "Owning Team").strip()
+          visibility   = extract_field(body, "Visibility").strip().lower()
+          topics_raw   = extract_field(body, "Topics").strip()
+          template     = extract_field(body, "Template Repository").strip()
+          features_raw = extract_field(body, "Features").strip()
+          notes        = extract_field(body, "Notes").strip()
+
+          # ── Validate required fields ───────────────────────────────────────
+          errors = []
+          if not name:
+              errors.append("Repository Name is required.")
+          if not description:
+              errors.append("Description is required.")
+          if repo_type not in ("svc", "lib", "infra", "sandbox"):
+              errors.append(
+                  f"Invalid type '{repo_type}'. Must be one of: svc, lib, infra, sandbox."
+              )
+          if not team:
+              errors.append("Owning Team is required.")
+          if visibility not in ("private", "internal", "public"):
+              errors.append(
+                  f"Invalid visibility '{visibility}'. Must be one of: private, internal, public."
+              )
+
+          if errors:
+              print("Validation errors:\n" + "\n".join(f"- {e}" for e in errors), file=sys.stderr)
+              sys.exit(1)
+
+          # ── Parse topics ───────────────────────────────────────────────────
+          topics = (
+              [t.strip().lower().replace(" ", "-") for t in topics_raw.split(",") if t.strip()]
+              if topics_raw else []
+          )
+
+          # ── Parse feature checkboxes ───────────────────────────────────────
+          wiki_on = bool(re.search(r"\[x\]\s+Enable Wiki",        features_raw, re.IGNORECASE))
+          proj_on = bool(re.search(r"\[x\]\s+Enable Projects",    features_raw, re.IGNORECASE))
+          disc_on = bool(re.search(r"\[x\]\s+Enable Discussions", features_raw, re.IGNORECASE))
+
+          # ── Build config dict and dump as YAML ────────────────────────────
+          config = {
+              "name": name,
+              "description": description,
+              "visibility": visibility,
+              "type": repo_type,
+              "team": team,
+              "topics": topics,
+              "template": template,
+              "features": {
+                  "wiki": wiki_on,
+                  "projects": proj_on,
+                  "discussions": disc_on,
+              },
+              "notes": notes,
+          }
+
+          header = (
+              f"# Generated from issue #{issue_number} by @{issue_author}\n"
+          )
+          yaml_content = "---\n" + header + yaml.dump(
+              config,
+              default_flow_style=False,
+              sort_keys=False,
+              allow_unicode=True,
+          )
+
+          config_path = f"repos/{name}.yml"
+          branch_name = f"feat/repo-request-{issue_number}-{name}"
+
+          with open("/tmp/repo_config.yml", "w") as f:
+              f.write(yaml_content)
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"name={name}\n")
+              out.write(f"description={description}\n")
+              out.write(f"repo_type={repo_type}\n")
+              out.write(f"team={team}\n")
+              out.write(f"visibility={visibility}\n")
+              out.write(f"config_path={config_path}\n")
+              out.write(f"branch_name={branch_name}\n")
+
+          print(f"name          : {name}")
+          print(f"description   : {description}")
+          print(f"type          : {repo_type}")
+          print(f"team          : {team}")
+          print(f"visibility    : {visibility}")
+          print(f"topics        : {topics}")
+          print(f"template      : {template or '(none)'}")
+          print(f"features      : wiki={wiki_on} projects={proj_on} discussions={disc_on}")
+          print(f"config_path   : {config_path}")
+          print(f"branch_name   : {branch_name}")
+          PYEOF
+
+      - name: Check for existing PR
+        id: existing-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ steps.parse.outputs.branch_name }}
+        run: |
+          existing=$(gh pr list --head "${BRANCH_NAME}" --json number --jq '.[0].number // empty')
+          if [[ -n "${existing}" ]]; then
+            echo "pr_exists=true" >> "${GITHUB_OUTPUT}"
+            echo "pr_number=${existing}" >> "${GITHUB_OUTPUT}"
+            echo "PR #${existing} already exists for branch ${BRANCH_NAME} — skipping creation."
+          else
+            echo "pr_exists=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Check if config file already exists
+        id: check
+        if: steps.existing-pr.outputs.pr_exists == 'false'
+        env:
+          CONFIG_PATH: ${{ steps.parse.outputs.config_path }}
+        run: |
+          if [[ -f "${CONFIG_PATH}" ]]; then
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+            echo "::warning::Config file '${CONFIG_PATH}' already exists."
+          else
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Fail if config file already exists
+        if: steps.existing-pr.outputs.pr_exists == 'false' && steps.check.outputs.exists == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          CONFIG_PATH: ${{ steps.parse.outputs.config_path }}
+        run: |
+          gh issue comment "${ISSUE_NUMBER}" \
+            --body "A config file \`${CONFIG_PATH}\` already exists in the repository. Please choose a different repository name or update the existing file directly via a PR."
+          exit 1
+
+      - name: Create branch, commit config, and open PR
+        if: steps.existing-pr.outputs.pr_exists == 'false' && steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          REPO_NAME: ${{ steps.parse.outputs.name }}
+          DESCRIPTION: ${{ steps.parse.outputs.description }}
+          REPO_TYPE: ${{ steps.parse.outputs.repo_type }}
+          TEAM: ${{ steps.parse.outputs.team }}
+          VISIBILITY: ${{ steps.parse.outputs.visibility }}
+          CONFIG_PATH: ${{ steps.parse.outputs.config_path }}
+          BRANCH_NAME: ${{ steps.parse.outputs.branch_name }}
+        run: |
+          set -euo pipefail
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "${BRANCH_NAME}"
+          cp /tmp/repo_config.yml "${CONFIG_PATH}"
+          git add "${CONFIG_PATH}"
+          git commit -m "feat(repos): add config for ${REPO_NAME} [skip ci]"
+          git push origin "${BRANCH_NAME}"
+
+          PR_BODY="## Repository Details
+
+          | Field | Value |
+          | ----- | ----- |
+          | **Name** | \`${REPO_NAME}\` |
+          | **Type** | \`${REPO_TYPE}\` |
+          | **Owning Team** | \`${TEAM}\` |
+          | **Visibility** | \`${VISIBILITY}\` |
+          | **Description** | ${DESCRIPTION} |
+
+          ## Purpose
+
+          Requested by @${ISSUE_AUTHOR} via issue #${ISSUE_NUMBER}.
+
+          ## Checklist
+
+          - [ ] File name in \`repos/\` matches the \`name\` field in the YAML.
+          - [ ] Repository name follows the naming convention in \`repos/README.md\`.
+          - [ ] Owning team exists in the GitHub organization.
+          - [ ] Description is clear and concise (one sentence).
+          - [ ] Visibility is set to \`private\` unless a business justification applies.
+          - [ ] Topics are lowercase and use hyphens only.
+          - [ ] I have read \`docs/pipeline/repo-onboarding.md\`.
+
+          ## Exception / Notes
+
+          Closes #${ISSUE_NUMBER}"
+
+          gh pr create \
+            --title "feat(repos): add ${REPO_NAME}" \
+            --body "${PR_BODY}" \
+            --base main \
+            --head "${BRANCH_NAME}" \
+            --label "repo-request"
+
+      - name: Comment on issue with PR link
+        if: steps.existing-pr.outputs.pr_exists == 'false' && steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          BRANCH_NAME: ${{ steps.parse.outputs.branch_name }}
+          REPO_NAME: ${{ steps.parse.outputs.name }}
+        run: |
+          PR_URL=$(gh pr list --head "${BRANCH_NAME}" --json url --jq '.[0].url')
+          gh issue comment "${ISSUE_NUMBER}" \
+            --body "A Pull Request has been automatically created for the \`${REPO_NAME}\` repository request: ${PR_URL}
+
+          Once the PR is reviewed and merged the repository will be created and this issue will be closed automatically."

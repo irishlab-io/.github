@@ -68,3 +68,7 @@
 - name: "python"
   color: "3572a5"
   description: "Python related changes"
+
+- name: "repo-request"
+  color: "7057ff"
+  description: "Repository creation request"
