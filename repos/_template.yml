@@ -31,6 +31,35 @@ topics: []
 template: ""
 #  template: irishlab-io/template-python-service
 
+# ── DEFAULT BRANCH ────────────────────────────────────────────────────────────
+# Name of the repository's default branch.
+# Org default: main
+default_branch: main
+
+# ── MERGE STRATEGY ────────────────────────────────────────────────────────────
+# Controls which merge methods are allowed for pull requests.
+# Org defaults enforce squash-only merges to keep a linear history on main.
+merge_strategy:
+  # Allow squash merging (combines all commits into one).
+  allow_squash_merge: true
+  # Allow regular merge commits (creates a merge commit).
+  allow_merge_commit: false
+  # Allow rebase merging (replays commits on top of base branch).
+  allow_rebase_merge: false
+  # Title format for squash merge commits.
+  # Options: PR_TITLE | COMMIT_OR_PR_TITLE
+  squash_merge_commit_title: PR_TITLE
+  # Body format for squash merge commits.
+  # Options: PR_BODY | COMMIT_MESSAGES | BLANK
+  squash_merge_commit_message: PR_BODY
+
+# ── BRANCH MANAGEMENT ────────────────────────────────────────────────────────
+# Controls branch lifecycle settings.
+branch_management:
+  # Automatically delete the head branch after a pull request is merged.
+  # Org default: true
+  delete_branch_on_merge: true
+
 # ── FEATURES ─────────────────────────────────────────────────────────────────
 # Enable or disable optional GitHub features.
 # These can be changed after creation via the org-wide sync.
@@ -38,6 +67,32 @@ features:
   wiki: false
   projects: false
   discussions: false
+
+# ── SECURITY ─────────────────────────────────────────────────────────────────
+# Security and analysis features for this repository.
+# Org defaults enable all alerts; set to false to opt a repo out.
+security:
+  # Receive alerts for known vulnerabilities in your dependencies (Dependabot).
+  vulnerability_alerts: true
+  # Enable GitHub Secret Scanning to detect accidentally committed secrets.
+  secret_scanning: true
+  # Block pushes that contain detected secrets (requires secret_scanning: true).
+  secret_scanning_push_protection: true
+
+# ── RULESETS ─────────────────────────────────────────────────────────────────
+# Controls which org-standard rulesets are applied to this repository.
+# Set to false to skip applying a ruleset (e.g. for experimental sandboxes).
+rulesets:
+  # Apply the org standard branch protection ruleset (targets: main).
+  branch: true
+  # Apply the org standard tag protection ruleset (targets: all tags).
+  tag: true
+
+# ── DEPENDABOT ────────────────────────────────────────────────────────────────
+# Controls whether the org's standard Dependabot configuration is synced.
+dependabot:
+  # Sync the org's dependabot-template.yml to .github/dependabot.yml on creation.
+  enabled: true
 
 # ── NOTES ─────────────────────────────────────────────────────────────────────
 # Free-text notes visible in the PR only (not applied to the repository).
