@@ -1,0 +1,85 @@
+---
+name: Reusable - Repository Deletion
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      repos_to_delete:
+        description: |
+          Space-separated list of repository names to delete.
+          These are derived from removed config files (repos/*.yml).
+        required: true
+        type: string
+    secrets:
+      IRISHLAB_BOT_APP_ID:
+        required: true
+        description: GitHub App ID for bot authentication
+      IRISHLAB_BOT_PRIVATE_KEY:
+        required: true
+        description: GitHub App private key for bot authentication
+
+jobs:
+  delete:
+    name: Delete Repositories
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Generate Token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        id: generate-token
+        with:
+          app-id: "${{ secrets.IRISHLAB_BOT_APP_ID }}"
+          private-key: "${{ secrets.IRISHLAB_BOT_PRIVATE_KEY }}"
+          owner: "${{ github.repository_owner }}"
+
+      - name: Delete repositories
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          ORG: ${{ github.repository_owner }}
+          REPOS_TO_DELETE: ${{ inputs.repos_to_delete }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${REPOS_TO_DELETE// /}" ]]; then
+            echo "No repositories provided for deletion."
+            exit 0
+          fi
+
+          deleted=()
+          skipped=()
+          failures=()
+
+          for repo_name in ${REPOS_TO_DELETE}; do
+            full_name="${ORG}/${repo_name}"
+            echo "Processing ${full_name}..."
+
+            # Check if repository exists
+            if ! gh repo view "${full_name}" &>/dev/null; then
+              echo "  Repository does not exist. Skipping."
+              skipped+=("${repo_name}")
+              continue
+            fi
+
+            # Delete the repository
+            if gh repo delete "${full_name}" --yes 2>&1; then
+              echo "  Deleted ${full_name}."
+              deleted+=("${repo_name}")
+            else
+              echo "::error::Failed to delete ${full_name}"
+              failures+=("${repo_name}")
+            fi
+          done
+
+          # Summary
+          echo ""
+          echo "=== Deletion Summary ==="
+          [[ ${#deleted[@]} -gt 0 ]] && echo "Deleted: ${deleted[*]}"
+          [[ ${#skipped[@]} -gt 0 ]] && echo "Skipped (not found): ${skipped[*]}"
+          [[ ${#failures[@]} -gt 0 ]] && echo "Failed: ${failures[*]}"
+
+          if [[ ${#failures[@]} -gt 0 ]]; then
+            echo "::error::Failed to delete ${#failures[@]} repository(ies): ${failures[*]}"
+            exit 1
+          fi
+        shell: bash

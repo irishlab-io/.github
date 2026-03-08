@@ -28,6 +28,7 @@ jobs:
       contents: read
     outputs:
       repos_to_create: ${{ steps.detect.outputs.repos_to_create }}
+      repos_to_delete: ${{ steps.detect.outputs.repos_to_delete }}
 
     steps:
       - name: Checkout
@@ -45,19 +46,33 @@ jobs:
 
           if [[ "${GITHUB_EVENT_NAME}" != 'push' ]]; then
             echo "repos_to_create=" >> "${GITHUB_OUTPUT}"
+            echo "repos_to_delete=" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
-          # Get changed repo config files (excluding _template.yml and deletions)
+          # Get added/modified repo config files (excluding _template.yml)
           if [[ -z "${BEFORE_SHA}" || "${BEFORE_SHA}" =~ ^0+$ ]]; then
             git diff-tree --root --name-only --diff-filter=ACMR -r "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml'
           else
             git diff --name-only --diff-filter=ACMR "${BEFORE_SHA}" "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml'
           fi | grep -v '_template\.yml$' | sort -u > /tmp/changed_configs
 
-          repos_to_create=$(cat /tmp/changed_configs | tr '\n' ' ' | xargs)
+          # Get deleted repo config files and extract repo names
+          if [[ -z "${BEFORE_SHA}" || "${BEFORE_SHA}" =~ ^0+$ ]]; then
+            : # No deletions on initial commit
+          else
+            git diff --name-only --diff-filter=D "${BEFORE_SHA}" "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml'
+          fi | grep -v '_template\.yml$' | while read -r f; do
+            basename "${f}" .yml | sed 's/\.yaml$//'
+          done | sort -u > /tmp/deleted_repos
+
+          repos_to_create=$(cat /tmp/changed_configs 2>/dev/null | tr '\n' ' ' | xargs)
+          repos_to_delete=$(cat /tmp/deleted_repos 2>/dev/null | tr '\n' ' ' | xargs)
+
           echo "repos_to_create=${repos_to_create}" >> "${GITHUB_OUTPUT}"
+          echo "repos_to_delete=${repos_to_delete}" >> "${GITHUB_OUTPUT}"
           echo "Repos to create: ${repos_to_create:-none}"
+          echo "Repos to delete: ${repos_to_delete:-none}"
 
   check:
     name: Verify target repositories
@@ -105,5 +120,17 @@ jobs:
       contents: read
     uses: irishlab-io/.github/.github/workflows/reusable-repo-creation.yml@main
     with:
-      config_files: ${{ needs.detect.outputs.repos_to_create }}
+      repos_to_create: ${{ needs.detect.outputs.repos_to_create }}
+    secrets: inherit
+
+  delete:
+    name: Call Repo Deletion Workflow
+    needs:
+      - detect
+    if: needs.detect.outputs.repos_to_delete != ''
+    permissions:
+      contents: read
+    uses: irishlab-io/.github/.github/workflows/reusable-repo-deletion.yml@main
+    with:
+      repos_to_delete: ${{ needs.detect.outputs.repos_to_delete }}
     secrets: inherit
