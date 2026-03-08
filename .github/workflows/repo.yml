@@ -20,7 +20,7 @@ concurrency:
 jobs:
 
   detect:
-    name: Determine repositories to create
+    name: Determine scoped repositories
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
