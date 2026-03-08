@@ -30,6 +30,15 @@ Updating a field in an existing YAML file and merging to `main` will **re-apply*
 the changed configuration to the repository (settings, description, topics).
 It will **not** re-create the repository if it already exists.
 
+## Offboarding and Deletion
+
+Deleting a repository definition file from this directory and merging that change
+to `main` will offboard and permanently delete the matching GitHub repository.
+
+- `repos/test-a.yml` deleted ⟶ `irishlab-io/test-a` deleted
+- The repository name is inferred from the deleted file name.
+- `_template.yml` is always ignored by the automation.
+
 ## Rules
 
 - One YAML file per repository — file name must match the `name` field.

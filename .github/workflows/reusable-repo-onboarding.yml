@@ -2,6 +2,9 @@
 name: Reusable - Repository Onboarding
 
 on: # yamllint disable-line rule:truthy
+  # repository_dispatch:
+  #   types:
+  #     - repository-created
   workflow_call:
     inputs:
       repo_name:

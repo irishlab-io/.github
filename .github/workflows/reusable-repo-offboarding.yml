@@ -1,0 +1,125 @@
+---
+name: Reusable - Repository Offboarding
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      repo_name:
+        description: Name of the repository to offboard
+        required: false
+        type: string
+      repo_names:
+        description: Space-separated list of repositories to offboard
+        required: false
+        type: string
+    secrets:
+      IRISHLAB_BOT_APP_ID:
+        required: true
+        description: GitHub App ID for bot authentication
+      IRISHLAB_BOT_PRIVATE_KEY:
+        required: true
+        description: GitHub App private key for bot authentication
+
+jobs:
+  offboard:
+    name: Offboard repositories
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Generate Token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        id: generate-token
+        with:
+          app-id: "${{ secrets.IRISHLAB_BOT_APP_ID }}"
+          private-key: "${{ secrets.IRISHLAB_BOT_PRIVATE_KEY }}"
+          owner: "${{ github.repository_owner }}"
+
+      - name: Offboard repositories
+        id: repo-offboarding
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          ORG: ${{ github.repository_owner }}
+          REPO_INPUT: ${{ inputs.repo_names != '' && inputs.repo_names || inputs.repo_name }}
+        run: |
+          set -euo pipefail
+
+          # Check if repositories were provided
+          if [[ -z "${REPO_INPUT// /}" ]]; then
+            echo "No repositories were provided for offboarding." >&2
+            exit 1
+          fi
+
+          declare -A seen=()
+          repos=()
+
+          # Normalize input: accept either "repo" or "org/repo"
+          for token in ${REPO_INPUT}; do
+            repo="${token}"
+
+            if [[ "${token}" == */* ]]; then
+              owner="${token%%/*}"
+              name="${token#*/}"
+
+              if [[ -z "${owner}" || -z "${name}" ]]; then
+                echo "  Invalid repository identifier '${token}'. Skipping." >&2
+                continue
+              fi
+
+              if [[ "${owner}" != "${ORG}" ]]; then
+                echo "  Repository '${token}' does not belong to '${ORG}'. Skipping." >&2
+                continue
+              fi
+
+              repo="${name}"
+            fi
+
+            if [[ -n "${seen[$repo]+x}" ]]; then
+              continue
+            fi
+
+            seen["${repo}"]=1
+            repos+=("${repo}")
+          done
+
+          if [[ ${#repos[@]} -eq 0 ]]; then
+            echo "No valid repositories remained after input normalization." >&2
+            exit 1
+          fi
+
+          failures=()
+
+          # Process each repository
+          for repo in "${repos[@]}"; do
+            full_name="${ORG}/${repo}"
+            echo "Offboarding ${full_name}..."
+
+            # Check if repository exists
+            if ! gh api --silent "/repos/${full_name}" >/dev/null 2>&1; then
+              echo "  Repository ${full_name} does not exist or is already deleted. Skipping."
+              continue
+            fi
+
+            # Delete the repository
+            if delete_error="$(gh api -X DELETE "/repos/${full_name}" 2>&1)"; then
+              echo "  Deleted ${full_name}."
+            else
+              if [[ -n "${delete_error}" ]]; then
+                echo "  Failed to delete ${full_name}: ${delete_error}" >&2
+              else
+                echo "  Failed to delete ${full_name}." >&2
+              fi
+              failures+=("${full_name}")
+            fi
+          done
+
+          # Check for failures
+          if [[ ${#failures[@]} -gt 0 ]]; then
+            if [[ ${#failures[@]} -eq 1 ]]; then
+              echo "Failed to delete 1 repository: ${failures[*]}" >&2
+            else
+              echo "Failed to delete ${#failures[@]} repositories: ${failures[*]}" >&2
+            fi
+            exit 1
+          fi
+        shell: bash

@@ -1,0 +1,65 @@
+---
+name: Repository Offboarding & Deletion
+description: Workflow to offboard repositories from the organization.
+author: irishlab-io
+
+inputs:
+  github_token:
+    description: GitHub token with permission to delete organization repositories
+    required: true
+  org:
+    description: GitHub organization that owns the repositories
+    required: true
+  repo_names:
+    description: Space-separated list of repository names to delete
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Delete repositories
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        ORG: ${{ inputs.org }}
+        REPO_NAMES: ${{ inputs.repo_names }}
+      run: |
+        set -euo pipefail
+
+        # Check if repositories were provided
+        if [[ -z "${REPO_NAMES// /}" ]]; then
+          echo "No repositories were provided for offboarding." >&2
+          exit 1
+        fi
+
+        failures=()
+
+        # Process each repository
+        for repo in ${REPO_NAMES}; do
+          full_name="${ORG}/${repo}"
+          echo "Offboarding ${full_name}..."
+
+          # Check if repository exists
+          if ! gh api "/repos/${full_name}" &>/dev/null; then
+            echo "  Repository ${full_name} does not exist or is already deleted. Skipping."
+            continue
+          fi
+
+          # Delete the repository
+          if gh repo delete "${full_name}" --yes 2>/dev/null; then
+            echo "  Deleted ${full_name}."
+          else
+            echo "  Failed to delete ${full_name}." >&2
+            failures+=("${full_name}")
+          fi
+        done
+
+        # Check for failures
+        if [[ ${#failures[@]} -gt 0 ]]; then
+          if [[ ${#failures[@]} -eq 1 ]]; then
+            echo "Failed to delete 1 repository: ${failures[*]}" >&2
+          else
+            echo "Failed to delete ${#failures[@]} repositories: ${failures[*]}" >&2
+          fi
+          exit 1
+        fi
+      shell: bash

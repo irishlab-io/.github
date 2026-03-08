@@ -5,14 +5,11 @@ run-name: Continuous Integration for ${{ github.repository_owner }} organization
 on: # yamllint disable-line rule:truthy
   push:
     paths:
-      - repos/*.yml
-  repository_dispatch:
-    types:
-      - repository-created
+      - 'repos/*.(yml|yaml)'
   workflow_dispatch:
     inputs:
       repo_name:
-        description: Name of the repository to onboard (leave empty for pinned-actions check only)
+        description: Name of the repository to onboard or offboard
         required: false
         type: string
 
@@ -22,61 +19,90 @@ concurrency:
 
 jobs:
 
-  repo-changes:
-    name: Detect Repository Config Changes
+  detect:
+    name: Detect Repos to Create
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
     outputs:
-      config_files: ${{ steps.detect.outputs.config_files }}
-      has_changes: ${{ steps.detect.outputs.has_changes }}
+      repos_to_create: ${{ steps.detect.outputs.repos_to_create }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
-      - name: Detect changed repo config files
+      - name: Detect repo config changes
         id: detect
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
         run: |
-          CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'repos/*.yml' 'repos/*.yaml' \
-            | grep -v 'repos/_template.yml' || true)
-          if [ -n "${CHANGED}" ]; then
-            FILES=$(echo "${CHANGED}" | tr '\n' ' ' | xargs)
-            echo "config_files=${FILES}" >> "${GITHUB_OUTPUT}"
-            echo "has_changes=true" >> "${GITHUB_OUTPUT}"
-            echo "Changed repo config files: ${FILES}"
-          else
-            echo "config_files=" >> "${GITHUB_OUTPUT}"
-            echo "has_changes=false" >> "${GITHUB_OUTPUT}"
-            echo "No repo config changes detected."
-          fi
-        shell: bash
+          set -euo pipefail
 
-  repo-creation:
-    name: Call Repository Creation
+          if [[ "${GITHUB_EVENT_NAME}" != 'push' ]]; then
+            echo "repos_to_create=" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          # Get changed repo config files (excluding _template.yml and deletions)
+          if [[ -z "${BEFORE_SHA}" || "${BEFORE_SHA}" =~ ^0+$ ]]; then
+            git diff-tree --root --name-only --diff-filter=ACMR -r "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml'
+          else
+            git diff --name-only --diff-filter=ACMR "${BEFORE_SHA}" "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml'
+          fi | grep -v '_template\.yml$' | sort -u > /tmp/changed_configs
+
+          repos_to_create=$(cat /tmp/changed_configs | tr '\n' ' ' | xargs)
+          echo "repos_to_create=${repos_to_create}" >> "${GITHUB_OUTPUT}"
+          echo "Repos to create: ${repos_to_create:-none}"
+
+  check:
+    name: Verify Repos Don't Exist
     needs:
-      - repo-changes
-    if: needs.repo-changes.outputs.has_changes == 'true'
+      - detect
+    if: needs.detect.outputs.repos_to_create != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Check if repos already exist
+        run: |
+          set -euo pipefail
+
+          existing_repos=()
+          for config_file in ${{ needs.detect.outputs.repos_to_create }}; do
+            # Extract repo name from config path (repos/my-repo.yml -> my-repo)
+            repo_name=$(basename "${config_file}" .yml)
+            repo_name=${repo_name%.yaml}
+
+            # Check if repo exists in the organization
+            if gh repo view "${{ github.repository_owner }}/${repo_name}" &>/dev/null; then
+              existing_repos+=("${repo_name}")
+              echo "::error::Repository '${repo_name}' already exists"
+            fi
+          done
+
+          if [[ ${#existing_repos[@]} -gt 0 ]]; then
+            echo "::error::Cannot create repositories that already exist: ${existing_repos[*]}"
+            exit 1
+          fi
+
+          echo "All repos are new and can be created"
+
+  create:
+    name: Create Repositories
+    needs:
+      - check
+      - detect
+    if: needs.detect.outputs.repos_to_create != ''
     permissions:
       contents: read
     uses: irishlab-io/.github/.github/workflows/reusable-repo-creation.yml@main
     with:
-      config_files: ${{ needs.repo-changes.outputs.config_files }}
-    secrets: inherit
-
-  repo-onboarding:
-    name: Call Repository Onboarding
-    needs:
-      - repo-creation
-    if: >-
-      github.event_name == 'workflow_dispatch' && inputs.repo_name != '' ||
-      github.event_name == 'repository_dispatch'
-    permissions:
-      contents: read
-    uses: irishlab-io/.github/.github/workflows/reusable-repo-onboarding.yml@main
-    with:
-      repo_name: "${{ github.event_name == 'repository_dispatch' && github.event.client_payload.repo_name || inputs.repo_name }}"
+      config_files: ${{ needs.detect.outputs.repos_to_create }}
     secrets: inherit
