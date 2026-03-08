@@ -20,7 +20,7 @@ concurrency:
 jobs:
 
   detect:
-    name: Detect Repos to Create
+    name: Determine repositories to create
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -59,7 +59,7 @@ jobs:
           echo "Repos to create: ${repos_to_create:-none}"
 
   check:
-    name: Verify Repos Don't Exist
+    name: Verify target repositories
     needs:
       - detect
     if: needs.detect.outputs.repos_to_create != ''
@@ -95,7 +95,7 @@ jobs:
           echo "All repos are new and can be created"
 
   create:
-    name: Create Repositories
+    name: Call Repo Creation Workflow
     needs:
       - check
       - detect
