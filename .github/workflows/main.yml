@@ -26,7 +26,8 @@ jobs:
       - pre-commit
     name: Call Git Guardian
     uses: irishlab-io/.github/.github/workflows/reusable-gitguardian.yml@main
-    secrets: inherit
+    secrets:
+      GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
 
   hello-world:
     name: Call Hello World
