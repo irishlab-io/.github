@@ -79,14 +79,73 @@ security:
   # Block pushes that contain detected secrets (requires secret_scanning: true).
   secret_scanning_push_protection: true
 
+# ── GIT WORKFLOW ─────────────────────────────────────────────────────────────
+# Declares the branching strategy used by this repository.
+# This value is automatically published as a GitHub Custom Property
+# (git_workflow) and drives which rulesets and CI gates are applied during
+# onboarding and org-wide sync.
+#
+# Supported options:
+#
+#   github-flow    — GitHub Flow (org default).
+#                    All work is done in short-lived feature branches that are
+#                    merged into main via a squash-merge pull request.
+#                    Simple linear history; no long-lived branches.
+#                    Ruleset profile: squash-only PR required on main, tag
+#                    protection enforcing semantic versioning.
+#
+#   trunk          — Trunk-based development.
+#                    Engineers commit directly to main (or via very short-lived
+#                    branches < 1 day). Requires a mature CI pipeline and
+#                    feature-flag infrastructure.
+#                    Ruleset profile: same as github-flow but with stricter
+#                    commit signing requirements; no release/* branches.
+#
+#   gitflow        — Git Flow.
+#                    Maintains two long-lived branches: main (stable releases)
+#                    and develop (integration). Short-lived feature/*, release/*,
+#                    and hotfix/* branches are merged via merge commits.
+#                    Ruleset profile: branch protection on both main and develop;
+#                    merge commits allowed; tag pattern vX.Y.Z.
+#
+#   release-branch — Release-branch model.
+#                    Each minor version ships from a dedicated release/X.Y
+#                    branch kept alive for backports. Used for libraries and
+#                    products that maintain multiple major versions in parallel.
+#                    Ruleset profile: branch protection on main and all
+#                    release/* branches; tag pattern vX.Y.Z.
+git_workflow: github-flow
+
 # ── RULESETS ─────────────────────────────────────────────────────────────────
 # Controls which org-standard rulesets are applied to this repository.
+# The git_workflow field above influences which ruleset profile is selected.
 # Set to false to skip applying a ruleset (e.g. for experimental sandboxes).
 rulesets:
   # Apply the org standard branch protection ruleset (targets: main).
   branch: true
   # Apply the org standard tag protection ruleset (targets: all tags).
   tag: true
+
+# ── CUSTOM PROPERTIES ────────────────────────────────────────────────────────
+# Key/value pairs published as GitHub Custom Properties on this repository.
+# The workflow calls PATCH /repos/{org}/{repo}/properties/values with these.
+# Custom properties can be used as conditions in org-level rulesets (GitHub
+# Enterprise Cloud) to target rules only at repos matching specific values.
+# Note: git_workflow is published automatically from the field above; it does
+# not need to be repeated here.
+#
+# Pre-defined org custom property schemas (name → type → allowed values):
+#
+#   git_workflow   single_select  github-flow | trunk | gitflow | release-branch
+#   environment    single_select  production | staging | development | sandbox
+#   service_tier   single_select  tier-1 | tier-2 | tier-3
+#
+# tier-1  = business-critical, customer-facing, on-call backed
+# tier-2  = internal services and standard products
+# tier-3  = tools, scripts, and experimental work
+custom_properties:
+  environment: development    # production | staging | development | sandbox
+  service_tier: tier-2        # tier-1 (critical) | tier-2 (standard) | tier-3 (internal)
 
 # ── DEPENDABOT ────────────────────────────────────────────────────────────────
 # Controls whether the org's standard Dependabot configuration is synced.
