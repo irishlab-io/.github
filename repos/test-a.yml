@@ -2,7 +2,7 @@
 # ── REQUIRED ─────────────────────────────────────────────────────────────────
 # Repository name (must match this file's name without the .yml extension).
 # Follow the org naming convention:  svc-|lib-|infra-|sandbox-
-name: "test"
+name: "test-a"
 
 # Short one-line description shown on the GitHub repository page.
 description: "a testing repository for reusable workflows and actions"
