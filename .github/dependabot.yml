@@ -4,7 +4,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
       day: "sunday"
       time: "01:00"
       timezone: "America/Toronto"
@@ -15,10 +15,52 @@ updates:
       - "docker"
     commit-message:
       prefix: "build"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      day: "sunday"
+      time: "01:00"
+      timezone: "America/Toronto"
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      day: "sunday"
+      time: "01:00"
+      timezone: "America/Toronto"
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
   - package-ecosystem: "uv"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
       day: "sunday"
       time: "01:00"
       timezone: "America/Toronto"
@@ -33,27 +75,6 @@ updates:
     open-pull-requests-limit: 10
     groups:
       python-minor-patch:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "01:00"
-      timezone: "America/Toronto"
-    cooldown:
-      default-days: 7
-    labels:
-      - "dependencies"
-      - "github-actions"
-    commit-message:
-      prefix: "ci"
-    groups:
-      github-actions:
         patterns:
           - "*"
         update-types:
