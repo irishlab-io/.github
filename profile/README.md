@@ -1,6 +1,6 @@
 # Welcome to [irishlab.io](https://www.irishlab.io/)
 
-This is help me collect and figure out how to develop an opiniated SDLC at an organisation level.
+This is help me collect and figure out how to develop an opinionated SDLC at an organisation level.
 
 ## Who am I ?
 
