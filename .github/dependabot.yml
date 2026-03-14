@@ -43,8 +43,6 @@ updates:
       day: "sunday"
       time: "01:00"
       timezone: "America/Toronto"
-    cooldown:
-      default-days: 7
     labels:
       - "dependencies"
       - "github-actions"
