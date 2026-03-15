@@ -44,6 +44,7 @@ nav:
       - Repository Request (Issue to PR): pipeline/repo-request-issue.md
       - Reusable Workflows:
           - Ansible Lint: pipeline/reusable-ansible-lint.md
+          - Bitwarden Secret Deploy: pipeline/reusable-bitwarden-secret-deploy.md
           - Bitwarden Secret Sync: pipeline/reusable-bitwarden-secret.md
           - Docker Build and Push: pipeline/reusable-docker-build.md
           - GH Labeler: pipeline/reusable-gh-labeler.md
