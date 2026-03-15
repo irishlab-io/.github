@@ -1,5 +1,5 @@
 ---
-name: Repository Request - Issue to PR
+name: Repository Request - Issue to Repo
 run-name: Repository Request issue ${{ github.event.issue.number }} by ${{ github.actor }}
 
 on: # yamllint disable-line rule:truthy
