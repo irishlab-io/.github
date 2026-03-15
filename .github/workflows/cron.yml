@@ -35,3 +35,12 @@ jobs:
     uses: irishlab-io/.github/.github/workflows/reusable-gitguardian.yml@main
     secrets:
       GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+
+  bitwarden-rotate:
+    name: Rotate Bitwarden Secrets
+    permissions: {}
+    uses: irishlab-io/.github/.github/workflows/reusable-bitwarden-secret-rotation.yml@main
+    secrets:
+      BW_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
+      IRISHLAB_BOT_APP_ID: ${{ secrets.IRISHLAB_BOT_APP_ID }}
+      IRISHLAB_BOT_PRIVATE_KEY: ${{ secrets.IRISHLAB_BOT_PRIVATE_KEY }}
