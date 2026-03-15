@@ -1,9 +1,9 @@
 ---
 name: Repository Request
 description: Request the creation of a new repository in the organization.
-title: "[Repo Request] : "
+title: "[Repo Request]:"
 labels:
-  - "repo-request"
+  - repo-request
 body:
   - type: markdown
     attributes:
