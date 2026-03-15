@@ -16,7 +16,7 @@ jobs:
 
   create-pr:
     name: Generate config and open PR
-    if: contains(github.event.issue.labels.*.name, 'repo-request')
+    if: startsWith(github.event.issue.title, '[Repo Request]')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
