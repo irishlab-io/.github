@@ -153,6 +153,25 @@ dependabot:
   # Sync the org's dependabot-template.yml to .github/dependabot.yml on creation.
   enabled: true
 
+# ── SECRETS ───────────────────────────────────────────────────────────────────
+# Bitwarden Secrets Manager secrets to provision when the repository is created.
+# Requires the BW_ACCESS_TOKEN org secret to be configured.
+#
+# Specify the Bitwarden secret UUID and the target GitHub secret name using the
+# format:  <bitwarden-secret-uuid> > GITHUB_SECRET_NAME
+#
+# org  — org-level secrets available to all (or selected) repositories.
+# repo — repo-level secrets scoped only to this repository.
+#
+# secrets:
+#   org:
+#     - "00000000-0000-0000-0000-000000000000 > MY_ORG_SECRET"
+#   repo:
+#     - "00000000-0000-0000-0000-000000000000 > MY_REPO_SECRET"
+secrets:
+  org: []
+  repo: []
+
 # ── NOTES ─────────────────────────────────────────────────────────────────────
 # Free-text notes visible in the PR only (not applied to the repository).
 notes: ""

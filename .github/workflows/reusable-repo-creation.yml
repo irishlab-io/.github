@@ -17,6 +17,9 @@ on: # yamllint disable-line rule:truthy
       IRISHLAB_BOT_PRIVATE_KEY:
         required: true
         description: GitHub App private key for bot authentication
+      BW_ACCESS_TOKEN:
+        required: false
+        description: Bitwarden Secrets Manager machine account access token (required to sync secrets defined in repos/*.yml)
 
 jobs:
   create:
@@ -200,4 +203,107 @@ jobs:
               echo "::warning::Failed to trigger onboarding for ${repo_name}"
             fi
           done
+        shell: bash
+
+      - name: Install Bitwarden Secrets Manager CLI
+        if: secrets.BW_ACCESS_TOKEN != ''
+        env:
+          BWS_VERSION: "2.0.0"
+        run: |
+          set -euo pipefail
+          curl -fsSLo /tmp/bws.zip \
+            "https://github.com/bitwarden/sdk-sm/releases/download/bws-v${BWS_VERSION}/bws-x86_64-unknown-linux-gnu-${BWS_VERSION}.zip"
+          unzip -q /tmp/bws.zip -d /tmp/bws-bin
+          sudo install -m 755 /tmp/bws-bin/bws /usr/local/bin/bws
+          bws --version
+        shell: bash
+
+      - name: Sync Bitwarden Secrets to GitHub
+        if: secrets.BW_ACCESS_TOKEN != ''
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
+          ORG: ${{ github.repository_owner }}
+          REPOS_TO_CREATE: ${{ inputs.repos_to_create }}
+        run: |
+          set -euo pipefail
+
+          sync_failures=()
+
+          for config_file in ${REPOS_TO_CREATE}; do
+            [[ "$(basename "${config_file}")" == "_template.yml" ]] && continue
+            [[ ! -f "${config_file}" ]] && continue
+
+            repo_name=$(grep -E '^name:' "${config_file}" | head -1 | sed 's/^name:[[:space:]]*//' | tr -d '"'"'" | xargs)
+            [[ -z "${repo_name}" ]] && continue
+
+            # Read org-level secrets (format: "<bitwarden-uuid> > GITHUB_SECRET_NAME")
+            mapfile -t org_secrets < <(yq '.secrets.org // [] | .[]' "${config_file}" 2>/dev/null | tr -d '"' || true)
+            # Read repo-level secrets
+            mapfile -t repo_secrets < <(yq '.secrets.repo // [] | .[]' "${config_file}" 2>/dev/null | tr -d '"' || true)
+
+            if [[ ${#org_secrets[@]} -eq 0 && ${#repo_secrets[@]} -eq 0 ]]; then
+              echo "No Bitwarden secrets configured for ${repo_name}. Skipping."
+              continue
+            fi
+
+            echo ""
+            echo "============================================================"
+            echo "Syncing secrets for: ${ORG}/${repo_name}"
+
+            for secret_mapping in "${org_secrets[@]}"; do
+              secret_mapping=$(echo "${secret_mapping}" | xargs 2>/dev/null || true)
+              [[ -z "${secret_mapping}" ]] && continue
+
+              bw_id=$(echo "${secret_mapping}" | awk -F' > ' '{print $1}')
+              gh_name=$(echo "${secret_mapping}" | awk -F' > ' '{print $2}')
+
+              if [[ -z "${bw_id}" || -z "${gh_name}" ]]; then
+                echo "  ::warning::Skipping malformed org secret entry: ${secret_mapping}"
+                continue
+              fi
+
+              echo "  Fetching Bitwarden secret ${bw_id} → org secret ${gh_name}..."
+              secret_value=$(bws secret get "${bw_id}" 2>/dev/null | jq -r '.value' || true)
+              if [[ -z "${secret_value}" || "${secret_value}" == "null" ]]; then
+                echo "  ::warning::Could not retrieve value for Bitwarden secret ${bw_id}"
+                sync_failures+=("${gh_name} (org)")
+                continue
+              fi
+              printf '%s' "${secret_value}" | gh secret set "${gh_name}" --org "${ORG}"
+              echo "  Org secret ${gh_name} set."
+            done
+
+            for secret_mapping in "${repo_secrets[@]}"; do
+              secret_mapping=$(echo "${secret_mapping}" | xargs 2>/dev/null || true)
+              [[ -z "${secret_mapping}" ]] && continue
+
+              bw_id=$(echo "${secret_mapping}" | awk -F' > ' '{print $1}')
+              gh_name=$(echo "${secret_mapping}" | awk -F' > ' '{print $2}')
+
+              if [[ -z "${bw_id}" || -z "${gh_name}" ]]; then
+                echo "  ::warning::Skipping malformed repo secret entry: ${secret_mapping}"
+                continue
+              fi
+
+              echo "  Fetching Bitwarden secret ${bw_id} → repo secret ${gh_name}..."
+              secret_value=$(bws secret get "${bw_id}" 2>/dev/null | jq -r '.value' || true)
+              if [[ -z "${secret_value}" || "${secret_value}" == "null" ]]; then
+                echo "  ::warning::Could not retrieve value for Bitwarden secret ${bw_id}"
+                sync_failures+=("${gh_name} (repo)")
+                continue
+              fi
+              printf '%s' "${secret_value}" | gh secret set "${gh_name}" --repo "${ORG}/${repo_name}"
+              echo "  Repo secret ${gh_name} set."
+            done
+
+            echo "  Done."
+          done
+
+          if [[ ${#sync_failures[@]} -gt 0 ]]; then
+            echo "::warning::Failed to sync ${#sync_failures[@]} secret(s): ${sync_failures[*]}"
+          fi
+
+          echo ""
+          echo "Bitwarden secret sync complete."
         shell: bash
