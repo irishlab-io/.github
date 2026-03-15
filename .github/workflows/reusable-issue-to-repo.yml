@@ -57,28 +57,22 @@ jobs:
               return value
 
           # ── Parse form fields ──────────────────────────────────────────────
+          org          = extract_field(body, "Organization").strip()
           name         = extract_field(body, "Repository Name").strip().lower()
           description  = extract_field(body, "Description").strip()
-          repo_type    = extract_field(body, "Repository Type").strip().lower()
-          team         = extract_field(body, "Owning Team").strip()
           visibility   = extract_field(body, "Visibility").strip().lower()
-          topics_raw   = extract_field(body, "Topics").strip()
           template     = extract_field(body, "Template Repository").strip()
           features_raw = extract_field(body, "Features").strip()
           notes        = extract_field(body, "Notes").strip()
 
           # ── Validate required fields ───────────────────────────────────────
           errors = []
+          if not org:
+              errors.append("Organization is required.")
           if not name:
               errors.append("Repository Name is required.")
           if not description:
               errors.append("Description is required.")
-          if repo_type not in ("svc", "lib", "infra", "sandbox"):
-              errors.append(
-                  f"Invalid type '{repo_type}'. Must be one of: svc, lib, infra, sandbox."
-              )
-          if not team:
-              errors.append("Owning Team is required.")
           if visibility not in ("private", "internal", "public"):
               errors.append(
                   f"Invalid visibility '{visibility}'. Must be one of: private, internal, public."
@@ -88,12 +82,6 @@ jobs:
               print("Validation errors:\n" + "\n".join(f"- {e}" for e in errors), file=sys.stderr)
               sys.exit(1)
 
-          # ── Parse topics ───────────────────────────────────────────────────
-          topics = (
-              [t.strip().lower().replace(" ", "-") for t in topics_raw.split(",") if t.strip()]
-              if topics_raw else []
-          )
-
           # ── Parse feature checkboxes ───────────────────────────────────────
           wiki_on = bool(re.search(r"\[x\]\s+Enable Wiki",        features_raw, re.IGNORECASE))
           proj_on = bool(re.search(r"\[x\]\s+Enable Projects",    features_raw, re.IGNORECASE))
@@ -101,12 +89,10 @@ jobs:
 
           # ── Build config dict and dump as YAML ────────────────────────────
           config = {
+              "org": org,
               "name": name,
               "description": description,
               "visibility": visibility,
-              "type": repo_type,
-              "team": team,
-              "topics": topics,
               "template": template,
               "features": {
                   "wiki": wiki_on,
@@ -134,19 +120,16 @@ jobs:
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write(f"name={name}\n")
+              out.write(f"org={org}\n")
               out.write(f"description={description}\n")
-              out.write(f"repo_type={repo_type}\n")
-              out.write(f"team={team}\n")
               out.write(f"visibility={visibility}\n")
               out.write(f"config_path={config_path}\n")
               out.write(f"branch_name={branch_name}\n")
 
           print(f"name          : {name}")
+          print(f"org           : {org}")
           print(f"description   : {description}")
-          print(f"type          : {repo_type}")
-          print(f"team          : {team}")
           print(f"visibility    : {visibility}")
-          print(f"topics        : {topics}")
           print(f"template      : {template or '(none)'}")
           print(f"features      : wiki={wiki_on} projects={proj_on} discussions={disc_on}")
           print(f"config_path   : {config_path}")
@@ -198,10 +181,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ORG: ${{ steps.parse.outputs.org }}
           REPO_NAME: ${{ steps.parse.outputs.name }}
           DESCRIPTION: ${{ steps.parse.outputs.description }}
-          REPO_TYPE: ${{ steps.parse.outputs.repo_type }}
-          TEAM: ${{ steps.parse.outputs.team }}
           VISIBILITY: ${{ steps.parse.outputs.visibility }}
           CONFIG_PATH: ${{ steps.parse.outputs.config_path }}
           BRANCH_NAME: ${{ steps.parse.outputs.branch_name }}
@@ -221,9 +203,8 @@ jobs:
 
           | Field | Value |
           | ----- | ----- |
+          | **Organization** | \`${ORG}\` |
           | **Name** | \`${REPO_NAME}\` |
-          | **Type** | \`${REPO_TYPE}\` |
-          | **Owning Team** | \`${TEAM}\` |
           | **Visibility** | \`${VISIBILITY}\` |
           | **Description** | ${DESCRIPTION} |
 
@@ -235,10 +216,8 @@ jobs:
 
           - [ ] File name in \`repos/\` matches the \`name\` field in the YAML.
           - [ ] Repository name follows the naming convention in \`repos/README.md\`.
-          - [ ] Owning team exists in the GitHub organization.
           - [ ] Description is clear and concise (one sentence).
           - [ ] Visibility is set to \`private\` unless a business justification applies.
-          - [ ] Topics are lowercase and use hyphens only.
           - [ ] I have read \`docs/pipeline/repo-onboarding.md\`.
 
           ## Exception / Notes
