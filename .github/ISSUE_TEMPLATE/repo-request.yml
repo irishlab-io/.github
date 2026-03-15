@@ -1,19 +1,41 @@
 ---
 name: Repository Request
 description: Request the creation of a new repository in the organization.
-title: "[Repo Request] "
+title: "[Repo Request] : "
 labels:
-  - repo-request
+  - "repo-request"
 body:
   - type: markdown
     attributes:
       value: |
         Use this form to request a new repository.
-        Once you submit this issue an automated workflow will generate the
-        configuration file, open a Pull Request for review, and close this
-        issue when the PR is merged.
+        Once you submit this issue an automated workflow will generate the configuration file.
+        This will open a Pull Request for review, and close this issue when the PR is merged.
+        Once the PR is merged, the repository will be automatically created with the specified configuration.
 
-        > **Naming convention:** `svc-` · `lib-` · `infra-` · `sandbox-`
+  - type: dropdown
+    id: type
+    attributes:
+      label: Organization
+      description: Select the organization for the new repository.
+      options:
+        - irishlab-io
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Repository Type
+      description: Controls naming-convention validation and team defaults.
+      options:
+        - management
+        - product
+        - project
+        - social
+        - test
+    validations:
+      required: true
 
   - type: input
     id: name
@@ -34,28 +56,6 @@ body:
       required: true
 
   - type: dropdown
-    id: type
-    attributes:
-      label: Repository Type
-      description: Controls naming-convention validation and team defaults.
-      options:
-        - svc
-        - lib
-        - infra
-        - sandbox
-    validations:
-      required: true
-
-  - type: input
-    id: team
-    attributes:
-      label: Owning Team
-      description: Must already exist in the GitHub organization (e.g. backend, platform, frontend).
-      placeholder: backend
-    validations:
-      required: true
-
-  - type: dropdown
     id: visibility
     attributes:
       label: Visibility
@@ -67,28 +67,11 @@ body:
       required: true
 
   - type: input
-    id: topics
-    attributes:
-      label: Topics
-      description: Comma-separated list of topics. Lowercase, hyphens only, max 20.
-      placeholder: python, api, fastapi
-
-  - type: input
     id: template
     attributes:
       label: Template Repository
       description: Optional — bootstrap from an existing template repository in the org. Leave blank to start from scratch.
-      placeholder: irishlab-io/template-python-service
-
-  - type: checkboxes
-    id: features
-    attributes:
-      label: Features
-      description: Enable optional GitHub features (can be changed after creation).
-      options:
-        - label: Enable Wiki
-        - label: Enable Projects
-        - label: Enable Discussions
+      placeholder: irishlab-io/.github-template
 
   - type: textarea
     id: notes
