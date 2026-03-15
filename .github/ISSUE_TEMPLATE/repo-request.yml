@@ -9,11 +9,8 @@ body:
     attributes:
       value: |
         Use this form to request a new repository.
-        Once you submit this issue an automated workflow will generate the
-        configuration file, open a Pull Request for review, and close this
-        issue when the PR is merged.
-
-        > **Naming convention:** `svc-` · `lib-` · `infra-` · `sandbox-`
+        The request will be reviewed by the admins, and if approved, a new repository will be created based on the provided information.
+        For more information on repository naming conventions and guidelines, please refer to the Repository Guidelines.
 
   - type: dropdown
     id: org
