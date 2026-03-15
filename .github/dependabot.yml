@@ -15,6 +15,13 @@ updates:
       - "docker"
     commit-message:
       prefix: "build"
+    groups:
+      docker:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -45,11 +52,11 @@ updates:
       timezone: "America/Toronto"
     labels:
       - "dependencies"
-      - "github-actions"
+      - "pre-commit"
     commit-message:
       prefix: "ci"
     groups:
-      github-actions:
+      pre-commit:
         patterns:
           - "*"
         update-types:
