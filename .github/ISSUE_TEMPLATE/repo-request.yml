@@ -9,9 +9,6 @@ body:
     attributes:
       value: |
         Use this form to request a new repository.
-        Once you submit this issue an automated workflow will generate the configuration file.
-        This will open a Pull Request for review, and close this issue when the PR is merged.
-        Once the PR is merged, the repository will be automatically created with the specified configuration.
 
   - type: dropdown
     id: type
