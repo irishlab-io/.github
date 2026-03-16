@@ -1,13 +1,6 @@
 ---
 name: Reusable - Hugo Deploy to GitHub Pages
 
-# REUSABLE WORKFLOW with INPUTS
-# to keep this workflow simple, assumptions are made:
-# - GitHub Pages is already configured on the target repository (source: GitHub Actions)
-# - Hugo themes managed as git submodules are checked out automatically
-# - The Hugo site is built and deployed to GitHub Pages on every call
-# - The workflow requires `pages: write` and `id-token: write` permissions in the caller
-
 on: # yamllint disable-line rule:truthy
   workflow_call:
     inputs:
@@ -21,6 +14,11 @@ on: # yamllint disable-line rule:truthy
         required: false
         default: true
         type: boolean
+      hugo-dir:
+        description: Directory where the Hugo site is located
+        required: false
+        default: .
+        type: string
       publish-dir:
         description: Directory where Hugo outputs the built site
         required: false
@@ -75,6 +73,12 @@ jobs:
       - name: Configure GitHub Pages
         id: pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+
+      - name: Hugo site directory
+        if: ${{ inputs.hugo-dir }}
+        run: |
+          cd ${{ inputs.hugo-dir }}
+        shell: bash
 
       - name: Build Hugo site
         run: |

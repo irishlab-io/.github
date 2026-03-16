@@ -1,6 +1,6 @@
 # Hugo Deploy to GitHub Pages
 
-The `reusable-hugo-deploy` workflow builds a [Hugo](https://gohugo.io/)
+The `reusable-hugo-ghpages` workflow builds a [Hugo](https://gohugo.io/)
 static site and deploys it to [GitHub Pages](https://pages.github.com/)
 using the official GitHub Pages Actions.
 
@@ -28,8 +28,10 @@ The workflow requires two additional permissions on the calling workflow:
 | `pages: write`    | Allows the workflow to publish the built site to GitHub Pages |
 | `id-token: write` | Allows OIDC token creation for trusted Pages deployments      |
 
-These must be declared in the **caller** workflow (see the usage example
-below).
+These must be declared in the **caller** workflow (either at top-level
+`permissions:` or on the specific job that calls this reusable workflow).
+If they are missing, GitHub fails with:
+`The workflow is requesting 'pages: write', 'id-token: write', but is only allowed ...`.
 
 ### 3. Hugo Theme (optional)
 
@@ -85,7 +87,21 @@ permissions:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-deploy.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+```
+
+If you prefer not to grant these permissions workflow-wide, set them on
+the calling job instead:
+
+```yaml
+jobs:
+  hugo-deploy:
+    name: Build and Deploy Hugo Site
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
 ```
 
 ## Inputs
@@ -112,7 +128,7 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-deploy.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
     with:
       hugo-version: "0.147.0"
 ```
@@ -123,7 +139,7 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-deploy.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
     with:
       hugo-args: "--minify --environment production"
 ```
@@ -134,7 +150,7 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-deploy.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
     with:
       submodules: "recursive"
 ```
@@ -145,7 +161,7 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-deploy.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
 
   notify:
     name: Print deployed URL
