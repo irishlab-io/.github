@@ -58,16 +58,6 @@ body:
       description: Optional — bootstrap from an existing template repository in the org. Leave blank to start from scratch.
       placeholder: irishlab-io/.github-template
 
-  - type: checkboxes
-    id: features
-    attributes:
-      label: Features
-      description: Enable optional GitHub features (can be changed after creation).
-      options:
-        - label: Enable Wiki
-        - label: Enable Projects
-        - label: Enable Discussions
-
   - type: textarea
     id: notes
     attributes:

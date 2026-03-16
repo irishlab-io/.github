@@ -6,7 +6,6 @@ on: # yamllint disable-line rule:truthy
   issues:
     types:
       - opened
-      - labeled
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.issue.number }}
@@ -62,7 +61,6 @@ jobs:
           description  = extract_field(body, "Description").strip()
           visibility   = extract_field(body, "Visibility").strip().lower()
           template     = extract_field(body, "Template Repository").strip()
-          features_raw = extract_field(body, "Features").strip()
           notes        = extract_field(body, "Notes").strip()
 
           # ── Validate required fields ───────────────────────────────────────
@@ -82,11 +80,6 @@ jobs:
               print("Validation errors:\n" + "\n".join(f"- {e}" for e in errors), file=sys.stderr)
               sys.exit(1)
 
-          # ── Parse feature checkboxes ───────────────────────────────────────
-          wiki_on = bool(re.search(r"\[x\]\s+Enable Wiki",        features_raw, re.IGNORECASE))
-          proj_on = bool(re.search(r"\[x\]\s+Enable Projects",    features_raw, re.IGNORECASE))
-          disc_on = bool(re.search(r"\[x\]\s+Enable Discussions", features_raw, re.IGNORECASE))
-
           # ── Build config dict and dump as YAML ────────────────────────────
           config = {
               "org": org,
@@ -94,11 +87,6 @@ jobs:
               "description": description,
               "visibility": visibility,
               "template": template,
-              "features": {
-                  "wiki": wiki_on,
-                  "projects": proj_on,
-                  "discussions": disc_on,
-              },
               "notes": notes,
           }
 
@@ -131,7 +119,6 @@ jobs:
           print(f"description   : {description}")
           print(f"visibility    : {visibility}")
           print(f"template      : {template or '(none)'}")
-          print(f"features      : wiki={wiki_on} projects={proj_on} discussions={disc_on}")
           print(f"config_path   : {config_path}")
           print(f"branch_name   : {branch_name}")
           PYEOF
