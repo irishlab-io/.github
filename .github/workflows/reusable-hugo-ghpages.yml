@@ -83,7 +83,7 @@ jobs:
 
       - name: Build Hugo site
         run: |
-          hugo ${{ inputs.hugo-args }} --baseURL "${{ steps.pages.outputs.base_url }}/"
+          hugo ${{ inputs.hugo-args }}"
         shell: bash
 
       - name: Upload Pages artifact
