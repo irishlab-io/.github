@@ -1,16 +1,18 @@
 ---
 name: Repository Request
 description: Request the creation of a new repository in the organization.
-title: "[Repo Request] "
+title: "[Repo Request] : "
 labels:
   - repo-request
 body:
   - type: markdown
     attributes:
+      label: Checklist
       value: |
-        Use this form to request a new repository.
-        The request will be reviewed, and if approved, a new repository will be created based on the provided information.
-        For more information on repository naming conventions and guidelines, please refer to the Repository Guidelines.
+        - [ ] I have read `docs/pipeline/repo-onboarding.md`.
+        - [ ] Repository name follows the naming convention in `repos/README.md`.
+        - [ ] Description is clear and concise (one sentence).
+        - [ ] Visibility is set to `private` unless a business justification applies.
 
   - type: dropdown
     id: org

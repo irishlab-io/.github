@@ -198,18 +198,7 @@ jobs:
           ## Purpose
 
           Requested by @${ISSUE_AUTHOR} via issue #${ISSUE_NUMBER}.
-
-          ## Checklist
-
-          - [ ] File name in \`repos/\` matches the \`name\` field in the YAML.
-          - [ ] Repository name follows the naming convention in \`repos/README.md\`.
-          - [ ] Description is clear and concise (one sentence).
-          - [ ] Visibility is set to \`private\` unless a business justification applies.
-          - [ ] I have read \`docs/pipeline/repo-onboarding.md\`.
-
-          ## Exception / Notes
-
-          Closes #${ISSUE_NUMBER}"
+          Closes with #${ISSUE_NUMBER}"
 
           gh pr create \
             --title "feat(repos): add ${REPO_NAME}" \
