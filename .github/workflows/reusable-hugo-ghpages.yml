@@ -74,15 +74,9 @@ jobs:
         id: pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
-      - name: Hugo site directory
-        if: ${{ inputs.hugo-dir }}
-        run: |
-          cd ${{ inputs.hugo-dir }}
-          ls -a
-        shell: bash
-
       - name: Build Hugo site
         run: |
+          cd ${{ inputs.hugo-dir }}
           hugo ${{ inputs.hugo-args }}
         shell: bash
 
