@@ -4,6 +4,8 @@ run-name: Continuous Integration for ${{ github.repository_owner }} organization
 
 on: # yamllint disable-line rule:truthy
   push:
+    branches:
+      - main
     paths:
       - repos/*.yml
       - repos/*.yaml
