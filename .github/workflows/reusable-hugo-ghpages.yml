@@ -78,6 +78,7 @@ jobs:
         if: ${{ inputs.hugo-dir }}
         run: |
           cd ${{ inputs.hugo-dir }}
+          ls -a
         shell: bash
 
       - name: Build Hugo site
