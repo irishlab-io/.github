@@ -1,0 +1,38 @@
+---
+name: Reusable - Run Software Composition Analysis
+
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      language:
+        description: Programming language of the project
+        required: false
+        type: string
+      generic:
+        description: Run generic scan
+        required: false
+        type: boolean
+        default: false
+      snyk:
+        description: 'Run Snyk scan'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  generic:
+    if: ${{ inputs.generic }}
+    name: Call Generic SCA Scan
+    uses: irishlab-io/.github/.github/workflows/reusable-generic-sca.yml@main
+    with:
+      language: ${{ inputs.language }}
+
+  snyk:
+    if: ${{ inputs.snyk }}
+    name: Call Snyk Scan
+    uses: irishlab-io/.github/.github/workflows/reusable-snyk.yml@main
+    with:
+      language: ${{ inputs.language }}
+
+    secrets:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
