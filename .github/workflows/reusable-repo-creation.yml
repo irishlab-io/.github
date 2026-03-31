@@ -206,7 +206,6 @@ jobs:
         shell: bash
 
       - name: Install Bitwarden Secrets Manager CLI
-        if: secrets.BW_ACCESS_TOKEN != ''
         env:
           BWS_VERSION: "2.0.0"
         run: |
@@ -219,7 +218,6 @@ jobs:
         shell: bash
 
       - name: Sync Bitwarden Secrets to GitHub
-        if: secrets.BW_ACCESS_TOKEN != ''
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           BWS_ACCESS_TOKEN: ${{ secrets.BW_ACCESS_TOKEN }}
