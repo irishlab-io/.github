@@ -104,7 +104,7 @@ def classify_number(number):
     number_is_positive = check_if_number_is_positive(number)
     number_is_negative = check_if_number_is_negative(number)
     number_is_zero = check_if_number_is_zero(number)
-    
+
     classification_result = ""
     if number_is_positive == True:
         classification_result = "positive"
