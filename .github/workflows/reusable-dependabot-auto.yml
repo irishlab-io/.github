@@ -1,5 +1,5 @@
 ---
-name: Dependabot Auto-Merge
+name: Reusable - Dependabot Auto-Merge
 
 on: # yamllint disable-line rule:truthy
   workflow_call:
