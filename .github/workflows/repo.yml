@@ -3,140 +3,16 @@ name: CI - Repository
 run-name: Continuous Integration for ${{ github.repository_owner }} organization on the behalf of ${{ github.actor }}
 
 on: # yamllint disable-line rule:truthy
-  push:
-    branches:
-      - main
-    paths:
-      - repos/*.yml
-      - repos/*.yaml
-  workflow_dispatch:
-    inputs:
-      repo_name:
-        description: Name of the repository to onboard or offboard
-        required: false
-        type: string
+  pull_request:
+    types:
+      - opened
+      - synchronize
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-
-  detect:
-    name: Determine scoped repositories
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    outputs:
-      repos_to_create: ${{ steps.detect.outputs.repos_to_create }}
-      repos_to_delete: ${{ steps.detect.outputs.repos_to_delete }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Detect repo config changes
-        id: detect
-        env:
-          BEFORE_SHA: ${{ github.event.before }}
-          AFTER_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-
-          if [[ "${GITHUB_EVENT_NAME}" != 'push' ]]; then
-            echo "repos_to_create=" >> "${GITHUB_OUTPUT}"
-            echo "repos_to_delete=" >> "${GITHUB_OUTPUT}"
-            exit 0
-          fi
-
-          # Added/modified repo config files (excluding _template.yml)
-          if [[ -z "${BEFORE_SHA}" || "${BEFORE_SHA}" =~ ^0+$ ]]; then
-            git diff-tree --root --name-only --diff-filter=ACMR -r "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml' \
-              | grep -v '_template\.yml$' || true
-          else
-            git diff --name-only --diff-filter=ACMR "${BEFORE_SHA}" "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml' \
-              | grep -v '_template\.yml$' || true
-          fi | sort -u > /tmp/changed_configs
-
-          # Deleted repo config files (excluding _template.yml)
-          if [[ -z "${BEFORE_SHA}" || "${BEFORE_SHA}" =~ ^0+$ ]]; then
-            : # No deletions on initial commit
-          else
-            git diff --name-only --diff-filter=D "${BEFORE_SHA}" "${AFTER_SHA}" -- 'repos/*.yml' 'repos/*.yaml' \
-              | grep -v '_template\.yml$' || true
-          fi | while read -r f; do
-            [[ -z "$f" ]] && continue
-            basename "${f}" .yml | sed 's/\.yaml$//'
-          done | sort -u > /tmp/deleted_repos
-
-          repos_to_create=$(tr '\n' ' ' < /tmp/changed_configs | xargs || true)
-          repos_to_delete=$(tr '\n' ' ' < /tmp/deleted_repos | xargs || true)
-
-          echo "repos_to_create=${repos_to_create}" >> "${GITHUB_OUTPUT}"
-          echo "repos_to_delete=${repos_to_delete}" >> "${GITHUB_OUTPUT}"
-          echo "Repos to create: ${repos_to_create:-none}"
-          echo "Repos to delete: ${repos_to_delete:-none}"
-
-  check:
-    name: Verify target repositories
-    needs:
-      - detect
-    if: needs.detect.outputs.repos_to_create != ''
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - name: Check if repos already exist
-        run: |
-          set -euo pipefail
-
-          existing_repos=()
-          for config_file in ${{ needs.detect.outputs.repos_to_create }}; do
-            # Extract repo name from config path (repos/my-repo.yml -> my-repo)
-            repo_name=$(basename "${config_file}" .yml)
-            repo_name=${repo_name%.yaml}
-
-            # Check if repo exists in the organization
-            if gh repo view "${{ github.repository_owner }}/${repo_name}" &>/dev/null; then
-              existing_repos+=("${repo_name}")
-              echo "::error::Repository '${repo_name}' already exists"
-            fi
-          done
-
-          if [[ ${#existing_repos[@]} -gt 0 ]]; then
-            echo "::error::Cannot create repositories that already exist: ${existing_repos[*]}"
-            exit 1
-          fi
-
-          echo "All repos are new and can be created"
-
-  create:
-    name: Call Repo Creation Workflow
-    needs:
-      - check
-      - detect
-    if: needs.detect.outputs.repos_to_create != ''
-    permissions:
-      contents: read
-    uses: irishlab-io/.github/.github/workflows/reusable-repo-creation.yml@main
-    with:
-      repos_to_create: ${{ needs.detect.outputs.repos_to_create }}
-    secrets: inherit
-
-  delete:
-    name: Call Repo Deletion Workflow
-    needs:
-      - detect
-    if: needs.detect.outputs.repos_to_delete != ''
-    permissions:
-      contents: read
-    uses: irishlab-io/.github/.github/workflows/reusable-repo-deletion.yml@main
-    with:
-      repos_to_delete: ${{ needs.detect.outputs.repos_to_delete }}
-    secrets: inherit
+  repo:
+    name: Call Dependabot Auto-Merge
+    uses: irishlab-io/.github/.github/workflows/reusable-dependabot-auto.yml@main
