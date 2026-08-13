@@ -21,10 +21,11 @@ on:
 engine:
   id: copilot
 
+# No pull-requests permission: the irishlab-bot App installation grants no pull_requests
+# scope, so requesting it makes the App token mint fail with 422. This worker never reads PRs.
 permissions:
   contents: read
   issues: read
-  pull-requests: read
 
 pre-agent-steps:
   - name: Materialize Copilot CLI at the sandbox spawn path
@@ -146,6 +147,12 @@ safe-outputs:
           sudo chmod 0755 /usr/local/bin/copilot
           /usr/local/bin/copilot --version
 
+# Fan-out safety: gh-aw's default group is per-workflow, so each dispatched worker cancelled
+# the previous one and only the last target survived. Key the group on the target repo.
+concurrency:
+  group: "gh-aw-${{ github.workflow }}-${{ inputs.target_repo }}"
+  cancel-in-progress: false
+
 timeout-minutes: 15
 
 tools:
@@ -160,7 +167,8 @@ tools:
         - pyquiz
         - yul-agentic
     toolsets:
-      - default
+      - repos
+      - issues
       - search
     allowed:
       - get_file_contents
