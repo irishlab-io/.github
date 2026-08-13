@@ -32,6 +32,8 @@ A short, prioritised list of findings — most important first. A reader must be
 
 The **Fix** is still bounded by rule 1. Describe what the policy requires and where it has to land; do not invent house style, tooling, or wording the policy never asks for. Where the policy leaves the detail open, say what must be true rather than dictating an exact form.
 
+When findings come from more than one policy, group them under a heading per policy id, most important policy first, so a long list stays readable. Policies the repository already satisfies are left out entirely rather than listed as passing.
+
 Follow the list with an **Unclear** section only when rule 4 applies, naming each ambiguity and the policy id and clause it comes from. Omit the section entirely when there is nothing unclear.
 
 Keep the whole output scannable. A repository owner should be able to read it in under a minute and know both what is wrong and what to do about it.
