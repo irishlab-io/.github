@@ -89,7 +89,10 @@ safe-outputs:
       - irishlab-io/ibc
       - irishlab-io/pyquiz
       - irishlab-io/yul-agentic
-    target-repo: "*"
+    # Pinned to the dispatched target rather than "*". With "*" the agent has to name the
+    # destination on every call, and if it omits one the issue silently lands in this repo
+    # instead of the target. Pinning removes that discretion; allowed-repos stays as the guard.
+    target-repo: ${{ inputs.target_repo }}
   threat-detection:
     # The detection verdict is a judgement call. On gpt-5.4-mini (inherited from the
     # workflow's top-level model) it false-positived on this workflow's own legitimate
@@ -188,7 +191,7 @@ You are a **worker** in an OrchestratorOps fan-out. You handle exactly one repos
 3. **Inspect `${{ inputs.target_repo }}`** for the evidence the policy asks about — repository metadata, and file contents where the policy is about files. Read only what the policy requires; this is not a general audit.
 4. **Check for an existing issue.** Search the target repo's open issues for a `[policy] ` issue covering the same policy id. If one exists, stop and emit nothing — do not file a duplicate and do not comment on it.
 5. **Decide.** If the repository already satisfies the policy, stop and emit nothing. A compliant repository produces no issue.
-6. **Otherwise file one issue in the target repository.** Title it `<policy id>: align <repo name> with <policy title>`. The body is the architect checklist — prioritised, verifiable activities, each tied to the policy clause it derives from — followed by a footer line:
+6. **Otherwise file one issue in `${{ inputs.target_repo }}`** — the repository the finding is about, never this one. Title it `<policy id>: align <repo name> with <policy title>`. The body is the architect's prioritised findings, each carrying its gap, the policy clause it violates, and the concrete steps that fix it, so a maintainer of that repository can act on it without opening the policy. Close with a footer line:
 
    ```markdown
    ---

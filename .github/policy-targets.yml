@@ -1,7 +1,6 @@
 ---
 
 targets:
-  - irishlab-io/http-micro-server
-  - irishlab-io/ibc
+  # TEMPORARY: narrowed to a single target while verifying the issue-filing path.
+  # Restore the full list after the test.
   - irishlab-io/pyquiz
-  - irishlab-io/yul-agentic
