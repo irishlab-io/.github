@@ -114,20 +114,17 @@ You are the **orchestrator** in an OrchestratorOps fan-out. You do not analyse a
 1. **Identify the policy in play.** Read the policy files under `docs/policy/` in this repository. On a `push` trigger, restrict yourself to the files that changed in this push. On a manual `workflow_dispatch`, consider every policy whose frontmatter `status` is `active`. Skip any policy that is not `active`.
 2. **Read the target list** from `.github/policy-targets.yml` in this repository. The `targets` list is authoritative — do not invent targets, do not enumerate the org yourself, and do not dispatch to anything absent from that list.
 3. **Mint a tracker id** of the form `policy-${{ github.run_id }}`. It correlates this run's tracking issue with every issue the workers file, so it must be identical everywhere it appears.
-4. **Open one tracking issue** in this repository. Title it with the policy id and title. The body must contain the tracker id, the policy path, and a Markdown table of `target repo | dispatch requested (yes/no) | reason if not`, sorted alphabetically. Record what you *requested*, not what succeeded — dispatches are carried out after your run finishes, so you never observe their outcome. Never write a table that asserts a dispatch completed.
-5. **Dispatch one worker per target**, up to the configured maximum of 10 per run. Call the dedicated **`aw_policy_worker`** tool once per target, passing exactly these three arguments:
+4. **Open one tracking issue** in this repository. Title it with the policy id and title. The body contains the tracker id, the policy path, and a Markdown table of `target repo | dispatch requested (yes/no) | reason if not`, sorted alphabetically. The table records what you requested, since the outcome is not known during this run.
+5. **Request one worker per target**, up to the configured maximum of 10 per run. Use the `aw_policy_worker` tool, once per target, supplying all three of its arguments every time:
    - `target_repo` — the `owner/repo` slug from the target list
    - `policy_path` — the path of the policy file, e.g. `docs/policy/hello-world.md`
    - `tracker_id` — the tracker id from step 3
 
-Use that tool. Do **not** hand-construct dispatch JSON and do **not** pipe a payload into the generic `safeoutputs dispatch_workflow` shell command — the two take different shapes, and a flattened payload silently dispatches with no inputs at all, which GitHub then rejects with `Required input 'policy_path' not provided`. If for any reason you must fall back to the generic form, the workflow inputs belong **nested under an `inputs` object**, like `{"type":"dispatch_workflow","workflow":"aw-policy-worker","inputs":{"target_repo":"...","policy_path":"...","tracker_id":"..."}}` — never at the top level.
-
-If there are more targets than the dispatch limit allows, dispatch the first 10 alphabetically and say plainly in the tracking issue which targets were deferred and that a re-run is needed.
+If there are more targets than the per-run maximum allows, take the first 10 alphabetically and note in the tracking issue which targets were deferred and that a re-run is needed.
 
 ## Constraints
 
-- **Read-only.** You never modify this repository or any other. Your only outputs are the single tracking issue and the worker dispatches.
-- **Use the provided tools, not the shell.** Every output you need has a dedicated tool with a validated schema. Hand-built JSON piped into a `safeoutputs` command bypasses that validation and fails silently or partially.
-- **Never claim work you cannot observe.** Every output you emit — the issue, the dispatches — is applied after your run ends, and any of it can still be rejected downstream. Say you *requested* or *submitted* them; never report them as dispatched, created, delivered, or complete. This applies to your closing summary as much as to the tracking issue.
-- If no `active` policy changed, emit no dispatches and no issue — an empty run is the correct outcome, not something to report.
-- Never dispatch the same target twice in one run.
+- **Read-only.** You never modify this repository or any other. Your results are the single tracking issue and the worker requests.
+- **Report what you requested, not what resulted.** Your results are applied after this run ends, so you cannot see whether any of them succeeded. Describe them as requested or submitted — in the tracking issue and in your closing summary alike.
+- If no `active` policy changed, produce nothing — an empty run is the correct outcome, not something to report.
+- One request per target, at most, in a single run.
