@@ -37,6 +37,20 @@ The following pipeline is the intended design; the `reusable-*` workflows named 
 3. When the PR merges to `main`, `repo.yml` CI detects changed/deleted `repos/*.yml` files and calls `reusable-repo-creation.yml` or `reusable-repo-deletion.yml`
 4. Creation fires a `repository-created` dispatch event, which triggers `reusable-repo-onboarding.yml` to apply rulesets, labels, Dependabot config, and Bitwarden secrets
 
+### Policy Fan-Out (OrchestratorOps)
+
+Org policies are authored as `docs/policy/*.md` (frontmatter `id`, `title`, `status`) and turned into per-repository work by a two-layer [OrchestratorOps](https://github.github.com/gh-aw/patterns/orchestrator-ops/) pair:
+
+1. `aw-policy-orchestrator.md` fires on a push to `main` touching `docs/policy/**.md`. It reads `.github/policy-targets.yml`, opens one tracking issue here, and dispatches one worker run per target with a shared `tracker_id`.
+2. `aw-policy-worker.md` handles exactly one repo per run and files at most one `[policy]` issue in it. It is read-only against the target — never a push or PR.
+
+Both import `.github/agents/architect.md`, which owns the policy → activities reasoning.
+
+Two constraints drive this shape, and are worth knowing before changing it:
+
+- `dispatch-workflow`/`call-workflow` are **same-repo only**. Cross-repo reach comes from `create-issue` with `target-repo`/`allowed-repos`, so the worker runs here and writes outward.
+- `allowed-repos` is **static frontmatter** evaluated at compile time — it cannot be derived from `.github/policy-targets.yml` at runtime. That file is data for the agent; `allowed-repos` is the enforced boundary. The worker's `github-app.repositories` scope must list the same repos plus `.github` (needed to read the policy), or cross-repo writes fail.
+
 ### CI Entry Points
 
 | File | Triggers |
@@ -85,6 +99,7 @@ Everything an AI coding agent needs to work in this org lives under `.github/`, 
 
 | Agent | Use for |
 |-------|---------|
+| `architect` | Turning `docs/policy/*.md` into concrete per-repo activities |
 | `code-reviewer` | General code review |
 | `coding-agent` | Implementing features/fixes end-to-end |
 | `security-analyst` | Security review and threat analysis |
@@ -103,8 +118,7 @@ Invoke a skill when its task matches. Highlights:
 - **Docker / supply chain**: `multi-stage-dockerfile`, `dependabot`, `dependency-track`, `gitguardian`
 - **Docs / misc**: `readme-blueprint-generator`, `repo-story-time`, `meeting-minutes`, `github-copilot-starter`
 
-Each skill is a `SKILL.md` (name + description frontmatter) with optional `references/` and
-`scripts/`. See a skill's own file for its procedure.
+Each skill is a `SKILL.md` (name + description frontmatter) with optional `references/` and `scripts/`. See a skill's own file for its procedure.
 
 ### Asset Conventions
 

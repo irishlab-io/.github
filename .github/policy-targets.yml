@@ -1,0 +1,7 @@
+---
+
+targets:
+  - irishlab-io/http-micro-server
+  - irishlab-io/ibc
+  - irishlab-io/pyquiz
+  - irishlab-io/yul-agentic

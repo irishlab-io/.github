@@ -17,8 +17,10 @@ tooling, and agentic workflows shared across every repo in the `irishlab-io` org
 | `.github/agents`, `.github/instructions`, `.github/skills` | Curated AI tooling — see [`.github/copilot-instructions.md`](.github/copilot-instructions.md) |
 | `.github/workflows/aw-*.md` | Agentic workflows (`gh-aw`) — automated triage, governance, docs, deps |
 | `.github/aw/` | The `gh-aw` action pin lockfile (`actions-lock.json`) |
+| `.github/policy-targets.yml` | Repositories the policy fan-out dispatches work for |
 | `repos/` | GitOps repository definitions (`repos/<name>.yml`) _(planned pipeline)_ |
 | `profile/README.md` | Public org profile shown on github.com/irishlab-io |
+| `docs/policy/` | Org-wide policies (`POL-*`) that drive the policy fan-out |
 | `docs/` | Long-form reference documentation |
 
 ## Consuming a reusable workflow
@@ -61,5 +63,4 @@ A minor variation of Gitflow:
 
 ## AI tooling
 
-See [`.github/copilot-instructions.md`](.github/copilot-instructions.md) for the curated agents,
-instructions, and skills, and `.github/workflows/aw-*.md` for the agentic workflows that run in CI.
+See [`.github/copilot-instructions.md`](.github/copilot-instructions.md) for the curated agents, instructions, and skills, and `.github/workflows/aw-*.md` for the agentic workflows that run in CI.
