@@ -23,17 +23,22 @@ pre-agent-steps:
     shell: bash
     run: |
       set -euo pipefail
-      # gh-aw's installer only writes /usr/local/bin/copilot on a toolcache MISS. On a HIT it merely prepends /opt/hostedtoolcache/... to PATH, but the sandbox spawns the agent via the hardcoded absolute path /usr/local/bin/copilot and refuses to mount the toolcache when it sits under /opt. Without this shim, any runner with a warm copilot-cli cache fails with: spawn /usr/local/bin/copilot ENOENT.
+      # gh-aw's installer only writes /usr/local/bin/copilot on a toolcache MISS. On a HIT it merely prepends /opt/hostedtoolcache/... to PATH, but the sandbox spawns the CLI via the hardcoded absolute path /usr/local/bin/copilot and refuses to mount the toolcache when it sits under /opt. Without this shim, any runner with a warm copilot-cli cache fails with: spawn /usr/local/bin/copilot ENOENT.
+      # This script is duplicated in pre-agent-steps (agent job) and safe-outputs.threat-detection.steps (detection job) of both aw-policy-orchestrator.md and aw-policy-worker.md. Keep the four copies identical. It cannot live in .github/scripts/ because the detection job checks out the repo only conditionally.
       if [ -x /usr/local/bin/copilot ]; then
-        echo "/usr/local/bin/copilot already present (installer took the toolcache-miss path)"
+        echo "/usr/local/bin/copilot already present - nothing to do"
         exit 0
       fi
       resolved="$(command -v copilot || true)"
       if [ -z "$resolved" ]; then
-        echo "::error::copilot CLI not found on PATH; cannot materialize it for the sandbox"
-        exit 1
+        # In the detection job this step is injected BEFORE 'Install GitHub Copilot CLI', so PATH is not populated yet. Look in the toolcache directly.
+        resolved="$(find "${RUNNER_TOOL_CACHE:-/opt/hostedtoolcache}/copilot-cli" -maxdepth 4 -type f -name copilot -perm -u+x 2>/dev/null | sort -V | tail -1)"
       fi
-      # Copy the whole versioned install root under /usr/local (which the sandbox can see), so this holds whether or not the launcher is self-contained.
+      if [ -z "$resolved" ]; then
+        # Nothing cached either, so the installer has not run yet and will take the toolcache-miss path, which installs to /usr/local/bin itself. Nothing to do.
+        echo "No Copilot CLI found yet; leaving it to the installer's toolcache-miss path"
+        exit 0
+      fi
       root="$(dirname "$(dirname "$resolved")")"
       echo "Copying Copilot CLI install root ${root} -> /usr/local/lib/copilot-cli"
       sudo rm -rf /usr/local/lib/copilot-cli
@@ -57,6 +62,35 @@ safe-outputs:
       - aw-policy-worker
     max: 10
   report-failure-as-issue: false
+  threat-detection:
+    steps:
+      - name: Materialize Copilot CLI at the sandbox spawn path
+        shell: bash
+        run: |
+          set -euo pipefail
+          # gh-aw's installer only writes /usr/local/bin/copilot on a toolcache MISS. On a HIT it merely prepends /opt/hostedtoolcache/... to PATH, but the sandbox spawns the CLI via the hardcoded absolute path /usr/local/bin/copilot and refuses to mount the toolcache when it sits under /opt. Without this shim, any runner with a warm copilot-cli cache fails with: spawn /usr/local/bin/copilot ENOENT.
+          # This script is duplicated in pre-agent-steps (agent job) and safe-outputs.threat-detection.steps (detection job) of both aw-policy-orchestrator.md and aw-policy-worker.md. Keep the four copies identical. It cannot live in .github/scripts/ because the detection job checks out the repo only conditionally.
+          if [ -x /usr/local/bin/copilot ]; then
+            echo "/usr/local/bin/copilot already present - nothing to do"
+            exit 0
+          fi
+          resolved="$(command -v copilot || true)"
+          if [ -z "$resolved" ]; then
+            # In the detection job this step is injected BEFORE 'Install GitHub Copilot CLI', so PATH is not populated yet. Look in the toolcache directly.
+            resolved="$(find "${RUNNER_TOOL_CACHE:-/opt/hostedtoolcache}/copilot-cli" -maxdepth 4 -type f -name copilot -perm -u+x 2>/dev/null | sort -V | tail -1)"
+          fi
+          if [ -z "$resolved" ]; then
+            # Nothing cached either, so the installer has not run yet and will take the toolcache-miss path, which installs to /usr/local/bin itself. Nothing to do.
+            echo "No Copilot CLI found yet; leaving it to the installer's toolcache-miss path"
+            exit 0
+          fi
+          root="$(dirname "$(dirname "$resolved")")"
+          echo "Copying Copilot CLI install root ${root} -> /usr/local/lib/copilot-cli"
+          sudo rm -rf /usr/local/lib/copilot-cli
+          sudo cp -a "$root" /usr/local/lib/copilot-cli
+          printf '#!/usr/bin/env bash\nexec /usr/local/lib/copilot-cli/bin/copilot "$@"\n' | sudo tee /usr/local/bin/copilot >/dev/null
+          sudo chmod 0755 /usr/local/bin/copilot
+          /usr/local/bin/copilot --version
 
 timeout-minutes: 15
 
@@ -94,5 +128,6 @@ If there are more targets than the dispatch limit allows, dispatch the first 10 
 
 - **Read-only.** You never modify this repository or any other. Your only outputs are the single tracking issue and the worker dispatches.
 - **Use the provided tools, not the shell.** Every output you need has a dedicated tool with a validated schema. Hand-built JSON piped into a `safeoutputs` command bypasses that validation and fails silently or partially.
+- **Never claim work you cannot observe.** Every output you emit — the issue, the dispatches — is applied after your run ends, and any of it can still be rejected downstream. Say you *requested* or *submitted* them; never report them as dispatched, created, delivered, or complete. This applies to your closing summary as much as to the tracking issue.
 - If no `active` policy changed, emit no dispatches and no issue — an empty run is the correct outcome, not something to report.
 - Never dispatch the same target twice in one run.
