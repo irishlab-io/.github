@@ -20,6 +20,9 @@ on:
 
 permissions:
   contents: read
+  issues: read
+  pull-requests: read
+  copilot-requests: write
 
 model: gpt-5.4-mini
 
@@ -30,8 +33,10 @@ network:
   allowed:
     - defaults
 
-imports:
-  - .github/agents/architect.md
+# The architect agent is delivered as an ambient folder rather than an `imports:` entry: it is
+# restored into $GITHUB_WORKSPACE before the agent runs, and step 0 of the prompt reads it.
+ambient-folders:
+  - .github/agents
 
 github-app:
   client-id: ${{ secrets.IRISHLAB_BOT_APP_ID }}
@@ -75,15 +80,12 @@ You are a **worker** in an OrchestratorOps fan-out. You handle exactly one repos
 
 ## Task
 
-1. **Read the policy** at `${{ inputs.policy_path }}` in `irishlab-io/.github`. If its frontmatter `status` is not `active`, stop and emit nothing.
-
-2. **Inspect `${{ inputs.target_repo }}`** for the evidence the policy asks about — repository metadata, and file contents where the policy is about files. Read only what the policy requires; this is not a general audit.
-
-3. **Check for an existing issue.** Search the target repo's open issues for a `[policy] ` issue covering the same policy id. If one exists, stop and emit nothing — do not file a duplicate and do not comment on it.
-
-4. **Decide.** If the repository already satisfies the policy, stop and emit nothing. A compliant repository produces no issue.
-
-5. **Otherwise file one issue in the target repository.** Title it `<policy id>: align <repo name> with <policy title>`. The body is the architect checklist — prioritised, verifiable activities, each tied to the policy clause it derives from — followed by a footer line:
+1. **Adopt the architect persona — do this first.** Read `.github/agents/architect.md` from your workspace and follow it for the rest of this run; it defines how policy text becomes activities and what your output must look like. It is the single source of truth for that reasoning, so do not substitute your own judgement for it. If the file is missing or unreadable, stop immediately and emit nothing rather than proceeding without it.
+2. **Read the policy** at `${{ inputs.policy_path }}` in `irishlab-io/.github`. If its frontmatter `status` is not `active`, stop and emit nothing.
+3. **Inspect `${{ inputs.target_repo }}`** for the evidence the policy asks about — repository metadata, and file contents where the policy is about files. Read only what the policy requires; this is not a general audit.
+4. **Check for an existing issue.** Search the target repo's open issues for a `[policy] ` issue covering the same policy id. If one exists, stop and emit nothing — do not file a duplicate and do not comment on it.
+5. **Decide.** If the repository already satisfies the policy, stop and emit nothing. A compliant repository produces no issue.
+6. **Otherwise file one issue in the target repository.** Title it `<policy id>: align <repo name> with <policy title>`. The body is the architect checklist — prioritised, verifiable activities, each tied to the policy clause it derives from — followed by a footer line:
 
    ```markdown
    ---
