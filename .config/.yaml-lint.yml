@@ -1,6 +1,9 @@
 ---
 ignore:
   - .vscode/
+  # gh-aw compiled artifacts (generated, DO NOT EDIT)
+  - .github/workflows/*.lock.yml
+  - .github/workflows/agentics-maintenance.yml
 extends: default
 rules:
   braces:

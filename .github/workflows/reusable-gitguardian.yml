@@ -3,6 +3,12 @@ name: Reusable - Run GitGuardian scan
 
 on: # yamllint disable-line rule:truthy
   workflow_call:
+    inputs:
+      required:
+        description: Fail the job when secrets are found (true) or annotate only (false)
+        required: false
+        type: boolean
+        default: true
     secrets:
       GITGUARDIAN_API_KEY:
         description: Git Guardian API Key
@@ -29,7 +35,7 @@ jobs:
           GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
-        continue-on-error: true
+        continue-on-error: ${{ !inputs.required }}
 
       - name: Check status of potentially failing step and issue warning
         if: steps.secret.outcome == 'failure'

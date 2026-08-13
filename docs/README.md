@@ -7,13 +7,12 @@ hide:
 
 This documentation provides comprehensive information about the [IrishLab.io Organization](www.irishlab.io)], my opinated view on how to setup a GitHub organization in a structured manner.
 
-**Technology Stack**:
+**What this repository provides**:
 
-- **Language**: Python using [uv](https://docs.astral.sh/uv/) and some NodesJS
-- **Framework**: Django 4.2.4
-- **Database**: SQLite3
-- **Code Quality**: Pre-commit, Ruff, Ty
-- **Testing**: Pytest, Playwright
+- **Reusable workflows** — shared GitHub Actions CI/CD for every org repo
+- **Governance** — rulesets, labels, and (planned) GitOps repo management
+- **AI tooling** — curated agents, instructions, skills, and agentic workflows
+- **Standards** — Conventional Commits, SHA-pinned Actions, pre-commit gates
 
 ## Quick Start
 

@@ -5,22 +5,13 @@
 This is the `irishlab-io/.github` special repository. It manages organization-wide GitHub governance:
 
 - **Reusable workflows** consumed by every org repo via `irishlab-io/.github/.github/workflows/reusable-*.yml@main`
-- **GitOps repo management** — adding/modifying `repos/<name>.yml` triggers automated repository creation, configuration, and secret provisioning
-- **Org-wide standards** — rulesets (`rulesets/*.json`), labels (`.github/labels.yml`), Renovate config, and Dependabot templates synced to all repos
-- **Documentation** served via MkDocs Material to Cloudflare Pages
+- **GitOps repo management** _(planned)_ — adding/modifying `repos/<name>.yml` triggers automated repository creation, configuration, and secret provisioning
+- **Org-wide standards** — rulesets (`.github/rulesets/*.json`), labels (`.github/labels.yml`), Renovate config, and Dependabot templates synced to all repos
+- **Curated AI tooling** — agents, instructions, skills, and agentic workflows under `.github/` (see `AGENTS.md`)
 
 ## Commands
 
 ```bash
-# Install dependencies
-uv sync
-
-# Serve docs locally
-uv run mkdocs serve
-
-# Build docs
-uv run mkdocs build
-
 # Run all pre-commit hooks
 pre-commit run --all-files --color auto
 
@@ -30,11 +21,17 @@ pre-commit run markdownlint --all-files
 
 # Update pre-commit hook versions
 pre-commit autoupdate
+
+# Compile agentic workflows after editing .github/aw/*.md
+gh aw compile
 ```
 
 ## Architecture
 
-### Repository Lifecycle (GitOps)
+### Repository Lifecycle (GitOps) — _planned_
+
+The following pipeline is the intended design; the `reusable-*` workflows named here are **not yet
+implemented**. Do not reference them from CI until they exist.
 
 1. A contributor opens a **[Repo Request] issue** using the issue form (`.github/ISSUE_TEMPLATE/repo-request.yml`)
 2. `reusable-issue-to-repo.yml` auto-parses the form and opens a PR adding `repos/<name>.yml`
@@ -55,7 +52,9 @@ All entry-point workflows delegate exclusively to `reusable-*.yml` via `workflow
 
 ### Reusable Workflows
 
-All reusable workflows live in `.github/workflows/reusable-*.yml` and are referenced by other org repos as:
+Reusable workflows **must** be named `reusable-*.yml` — the prefix is reserved for them so they
+are never confused with this repo's CI entry points or the `agentic-*` (`gh-aw`) workflows. They
+live in `.github/workflows/reusable-*.yml` and are referenced by other org repos as:
 
 ```yaml
 uses: irishlab-io/.github/.github/workflows/reusable-<name>.yml@main
@@ -99,7 +98,7 @@ Copy `repos/_template.yml` when adding a new repository. The `name` field **must
 
 ### Rulesets
 
-`rulesets/main.json` (branch protection) and `rulesets/tag.json` (tag protection) are synced to every active, non-template org repo by `reusable-org-sync.yml`. The `.github` repo itself is skipped during sync.
+`.github/rulesets/main.json` (branch protection) and `.github/rulesets/tag.json` (tag protection) are the org templates, applied to every active, non-template org repo during onboarding. The `.github` repo itself is skipped. (The `reusable-org-sync.yml` workflow that automates this is _planned_.)
 
 ### Secrets via Bitwarden
 
@@ -119,8 +118,11 @@ secrets:
 
 ### Copilot Instruction Files (scoped)
 
-File-type-specific instructions live in `.github/instructions/` with `applyTo` frontmatter — they complement this file:
+File-type-specific instructions live in `.github/instructions/` with `applyTo` frontmatter — they complement this file. For example:
 
-- `git-workflow.instructions.md` — applies to `**`
-- `python-webapp.instructions.md` — applies to `**/*.py`
-- `docker.instructions.md` — applies to `Dockerfile`, `docker-compose*.yml`
+- `git-workflow.instructions.md` — git branching/commit workflow
+- `best-practices-python.instructions.md` — applies to `**/*.py`
+- `best-practices-docker.instructions.md` — applies to `Dockerfile`, `docker-compose*.yml`
+- `best-practices-github-actions.instructions.md` — applies to `.github/workflows/*.yml`
+
+See `AGENTS.md` for the full catalogue of agents, instructions, and skills.

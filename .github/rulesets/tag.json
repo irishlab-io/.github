@@ -15,7 +15,6 @@
     }
   },
   "enforcement": "active",
-  "id": 6367912,
   "name": "tag",
   "rules": [
     {
@@ -28,16 +27,8 @@
       "type": "required_signatures"
     },
     {
-      "parameters": {
-        "name": "",
-        "negate": false,
-        "operator": "regex",
-        "pattern": "^v0\\.\\d+\\.\\d+$"
-      },
-      "type": "tag_name_pattern"
+      "type": "update"
     }
   ],
-  "source": "irishlab-io/.github",
-  "source_type": "Repository",
   "target": "tag"
 }

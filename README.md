@@ -1,51 +1,65 @@
-# .github
+# irishlab-io/.github
 
-This repository manage organization gouvernance, reusable workflow, references models, to be used by other repos from within this organization.
+The organization's **special repository**. It provides governance, reusable CI/CD, curated AI
+tooling, and agentic workflows shared across every repo in the `irishlab-io` organization.
 
-This is for demonstration purpose.
+> Status: work in progress — parts of the GitOps repo-management pipeline are still being built.
+> Sections marked _planned_ are not yet implemented.
 
-## Gouvernance
+## What's here
 
-### Repos
+| Path | Purpose |
+|------|---------|
+| `.github/workflows/reusable-*.yml` | Reusable CI/CD workflows consumed by org repos |
+| `.github/workflows/{branch,pr,main,cron,repo}.yml` | This repo's own CI entry points |
+| `.github/rulesets/` | Branch (`main.json`) and tag (`tag.json`) protection templates |
+| `.github/labels.yml` | Standard org labels synced to repos |
+| `.github/agents`, `.github/instructions`, `.github/skills` | Curated AI tooling — see [`AGENTS.md`](AGENTS.md) |
+| `.github/workflows/agentic-*.md` | Agentic workflows (`gh-aw`) — automated triage, governance, docs, deps |
+| `.github/aw/` | Shared `gh-aw` components and the action pin lockfile |
+| `repos/` | GitOps repository definitions (`repos/<name>.yml`) _(planned pipeline)_ |
+| `profile/README.md` | Public org profile shown on github.com/irishlab-io |
+| `docs/` | Long-form reference documentation |
 
-Still a WIP. ##TODO: Get this working
+## Consuming a reusable workflow
 
-### Rulesets
+From any repo in the org, call a reusable workflow by path and ref:
 
-- `main.json`: Typical `main` branch rulesets, nothing special
-- `tag.json`: Typical project `tag` rulesets, nothing special
+```yaml
+jobs:
+  lint:
+    uses: irishlab-io/.github/.github/workflows/reusable-prek.yml@main
+    with:
+      required: true          # fail the job on findings (default); set false for advisory-only
+```
 
-## References
+Available reusable workflows include: `reusable-prek`, `reusable-gitguardian`, `reusable-sast`,
+`reusable-sca`, `reusable-secret`, `reusable-python-uv`, `reusable-docker-build`,
+`reusable-terraform-plan` / `reusable-terraform-apply`, `reusable-renovate`,
+`reusable-dependabot-auto`, `reusable-gh-labeler`, `reusable-gh-pin-actions`, and more — see
+`.github/workflows/`.
 
-Something about `copilot-instructions.md`
+## Branching model
 
-### Agents
+A minor variation of Gitflow:
 
-- code-reviewer.md
-- coding-agent.md
-- security-analyst.md
-- technical-writer.md
-- terraform-reviewer.md
-- test-engineer.md
+| Branch | Purpose |
+|--------|---------|
+| `main` | Latest production codebase |
+| `dev` | Aggregates features and development |
+| `feat/*` | New features |
+| `rel/*` | Release preparation |
+| `fix/*` | Hotfixes to production |
+| `renovate/*` | Dependency updates ([Renovate](https://www.mend.io/renovate/)) |
 
-### Instructions
+## Conventions
 
-### Skills
+- **Conventional Commits**, enforced by commitizen (`commit-msg` hook).
+- **SHA-pinned Actions** with a version comment; enforced by `pin-github-action`.
+- Pre-commit gate: `pre-commit run --all-files` (commitizen, ggshield, markdownlint, yamllint,
+  actionlint).
 
-TBD
+## AI tooling
 
-### Workflows
-
-This project follows a minor variation of the Gitflow branches naming convention:
-
-- Main branch: Stores the latest production codebase, named **main**
-- Develop branch: Aggregates features and developments, named **dev**
-- Feature branches: Used to develop new features, named **feat/***
-- Release branches: Used to manage the release process, named **rel/***
-- Hotfix branches: Used to quickly patch production releases, named **fix/***
-- Renovate branches: Used to update dependencies with [Renovate](https://www.mend.io/renovate/), named **renovate/***
-
-
-## Settings
-
-Safe Setting repo template
+See [`AGENTS.md`](AGENTS.md) for the curated agents, instructions, and skills, and
+`.github/aw/` for the agentic workflows that run in CI.

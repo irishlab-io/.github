@@ -5,17 +5,17 @@ hide:
 
 # Pipeline Overview
 
-The **Insecure Bank Corp** project uses GitHub Actions for CI|CD platform. The pipeline is designed to ensure code quality, security, and reliable deployments through multiple stages of validation.
+The **irishlab-io** organization uses GitHub Actions as its CI/CD platform. The pipeline is designed to ensure code quality, security, and reliable deployments through multiple stages of validation.
 
 The CI/CD strategy follows a **branch-based workflow** with four distinct pipelines triggered by different Git events:
 
 | Pipeline      | Trigger                      | Description                                         | Status                                                                                                                                                                                                        |
 |---------------|------------------------------|-----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| CI - Branches | Push to various branches     | Early feedback during development                   | [![CI - Branches](https://github.com/mighty-muffin/ibc/actions/workflows/branch.yml/badge.svg)](https://github.com/mighty-muffin/ibc/actions/workflows/branch.yml)                                            |
-| CI - PR       | PR to `main`                 | Comprehensive validation before merge               | [![CI - PR](https://github.com/mighty-muffin/ibc/actions/workflows/pr.yml/badge.svg)](https://github.com/mighty-muffin/ibc/actions/workflows/pr.yml)                                                          |
-| CI - Main     | Push to `main` branch        | Full validation, container build & publish, release | [![CI - Main](https://github.com/mighty-muffin/ibc/actions/workflows/main.yml/badge.svg)](https://github.com/mighty-muffin/ibc/actions/workflows/main.yml)                                                    |
-| CI - Tag      | Version tags (`v*`)          | Semantic release and changelog publication          | [![CI - Tag](https://github.com/mighty-muffin/ibc/actions/workflows/tag.yml/badge.svg)](https://github.com/mighty-muffin/ibc/actions/workflows/tag.yml)                                                       |
-| Dependabot    | Weekly (7 days cooldown)     | Regular updates for dependencies                    | [![Dependabot Updates](https://github.com/mighty-muffin/ibc/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/mighty-muffin/ibc/actions/workflows/dependabot/dependabot-updates) |
+| CI - Branches | Push to various branches     | Early feedback during development                   | [![CI - Branches](https://github.com/irishlab-io/.github/actions/workflows/branch.yml/badge.svg)](https://github.com/irishlab-io/.github/actions/workflows/branch.yml)                                            |
+| CI - PR       | PR to `main`                 | Comprehensive validation before merge               | [![CI - PR](https://github.com/irishlab-io/.github/actions/workflows/pr.yml/badge.svg)](https://github.com/irishlab-io/.github/actions/workflows/pr.yml)                                                          |
+| CI - Main     | Push to `main` branch        | Full validation, container build & publish, release | [![CI - Main](https://github.com/irishlab-io/.github/actions/workflows/main.yml/badge.svg)](https://github.com/irishlab-io/.github/actions/workflows/main.yml)                                                    |
+| CI - Tag      | Version tags (`v*`)          | Semantic release and changelog publication          | [![CI - Tag](https://github.com/irishlab-io/.github/actions/workflows/tag.yml/badge.svg)](https://github.com/irishlab-io/.github/actions/workflows/tag.yml)                                                       |
+| Dependabot    | Weekly (7 days cooldown)     | Regular updates for dependencies                    | [![Dependabot Updates](https://github.com/irishlab-io/.github/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/irishlab-io/.github/actions/workflows/dependabot/dependabot-updates) |
 
 Most pipelines shares these core stages:
 
@@ -57,7 +57,7 @@ At a high level, once a git commit is pushed to the remote repository the variou
 # ...
   hello:
     name: Call Hello World Reusable Workflow
-    uses: mighty-muffin/.github/.github/workflows/reusable-hello-world.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-hello-world.yml@main
 #...
   pre-commit:
     steps:
