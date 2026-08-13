@@ -64,17 +64,22 @@ network:
 ambient-folders:
   - .github/agents
 
-github-app:
-  client-id: ${{ secrets.IRISHLAB_BOT_APP_ID }}
-  private-key: ${{ secrets.IRISHLAB_BOT_PRIVATE_KEY }}
-  repositories:
-    - .github
-    - http-micro-server
-    - ibc
-    - pyquiz
-    - yul-agentic
 
 safe-outputs:
+  # Scoped deliberately: a top-level github-app block also makes the activation job mint an
+  # App token, and activation requests actions:read, which the irishlab-bot installation does
+  # not grant -> 422 "The permissions requested are not granted to this installation".
+  # Activation only ever touches this repo, so it uses GITHUB_TOKEN; the App is needed solely
+  # for the cross-repo reads (tools.github) and the cross-repo issue (safe-outputs).
+  github-app:
+    client-id: ${{ secrets.IRISHLAB_BOT_APP_ID }}
+    private-key: ${{ secrets.IRISHLAB_BOT_PRIVATE_KEY }}
+    repositories:
+      - .github
+      - http-micro-server
+      - ibc
+      - pyquiz
+      - yul-agentic
   create-issue:
     max: 1
     title-prefix: "[policy] "
@@ -145,6 +150,15 @@ timeout-minutes: 15
 
 tools:
   github:
+    github-app:
+      client-id: ${{ secrets.IRISHLAB_BOT_APP_ID }}
+      private-key: ${{ secrets.IRISHLAB_BOT_PRIVATE_KEY }}
+      repositories:
+        - .github
+        - http-micro-server
+        - ibc
+        - pyquiz
+        - yul-agentic
     toolsets:
       - default
       - search
