@@ -63,6 +63,13 @@ safe-outputs:
     max: 10
   report-failure-as-issue: false
   threat-detection:
+    # The detection verdict is a judgement call. On gpt-5.4-mini (inherited from the
+    # workflow's top-level model) it false-positived on this workflow's own legitimate
+    # instructions, while itself noting they "align with the workflow's own legitimate
+    # orchestrator instructions". Give the judge a stronger model than the agent it judges.
+    engine:
+      id: copilot
+      model: gpt-5.4
     steps:
       - name: Materialize Copilot CLI at the sandbox spawn path
         shell: bash
