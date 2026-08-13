@@ -160,6 +160,14 @@ timeout-minutes: 15
 
 tools:
   github:
+    # Because irishlab-io/.github is public, gh-aw auto-enables a cross-visibility guard that
+    # refuses to let repository content reach the safe-outputs sink ("DIFC Violation: Resource
+    # 'noop resource (no restrictions)' has lower integrity than agent requires"), which blocks
+    # the worker from filing its finding at all. Exempt only the safeoutputs sink; this selective
+    # form stays compatible with strict mode, and a finding about a repo is filed into that same
+    # repo, so private content never crosses into a less private one.
+    private-to-public-flows:
+      - github
     github-app:
       client-id: ${{ secrets.IRISHLAB_BOT_APP_ID }}
       private-key: ${{ secrets.IRISHLAB_BOT_PRIVATE_KEY }}
