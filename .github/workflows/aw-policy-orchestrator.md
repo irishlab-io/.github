@@ -18,6 +18,30 @@ permissions:
   issues: read
   pull-requests: read
 
+pre-agent-steps:
+  - name: Materialize Copilot CLI at the sandbox spawn path
+    shell: bash
+    run: |
+      set -euo pipefail
+      # gh-aw's installer only writes /usr/local/bin/copilot on a toolcache MISS. On a HIT it merely prepends /opt/hostedtoolcache/... to PATH, but the sandbox spawns the agent via the hardcoded absolute path /usr/local/bin/copilot and refuses to mount the toolcache when it sits under /opt. Without this shim, any runner with a warm copilot-cli cache fails with: spawn /usr/local/bin/copilot ENOENT.
+      if [ -x /usr/local/bin/copilot ]; then
+        echo "/usr/local/bin/copilot already present (installer took the toolcache-miss path)"
+        exit 0
+      fi
+      resolved="$(command -v copilot || true)"
+      if [ -z "$resolved" ]; then
+        echo "::error::copilot CLI not found on PATH; cannot materialize it for the sandbox"
+        exit 1
+      fi
+      # Copy the whole versioned install root under /usr/local (which the sandbox can see), so this holds whether or not the launcher is self-contained.
+      root="$(dirname "$(dirname "$resolved")")"
+      echo "Copying Copilot CLI install root ${root} -> /usr/local/lib/copilot-cli"
+      sudo rm -rf /usr/local/lib/copilot-cli
+      sudo cp -a "$root" /usr/local/lib/copilot-cli
+      printf '#!/usr/bin/env bash\nexec /usr/local/lib/copilot-cli/bin/copilot "$@"\n' | sudo tee /usr/local/bin/copilot >/dev/null
+      sudo chmod 0755 /usr/local/bin/copilot
+      /usr/local/bin/copilot --version
+
 model: gpt-5.4-mini
 
 network:
