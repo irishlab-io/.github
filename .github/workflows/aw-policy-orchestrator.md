@@ -122,12 +122,12 @@ You are the **orchestrator** in an OrchestratorOps fan-out. You do not analyse a
 2. **Read the target list** from `.github/policy-targets.yml` in this repository. The `targets` list is authoritative — do not invent targets, do not enumerate the org yourself, and do not dispatch to anything absent from that list.
 3. **Mint a tracker id** of the form `policy-${{ github.run_id }}`. It correlates this run's tracking issue with every issue the workers file, so it must be identical everywhere it appears.
 4. **Open one tracking issue** in this repository. Title it with the policy id and title. The body contains the tracker id, the policy path, and a Markdown table of `target repo | dispatch requested (yes/no) | reason if not`, sorted alphabetically. The table records what you requested, since the outcome is not known during this run.
-5. **Request one worker per target**, up to the configured maximum of 10 per run. Two dispatch tools are available and they take different argument layouts. The correct one here is **`aw_policy_worker`**: it is already bound to the worker workflow and accepts these three values directly, all required on every call.
+5. **Request one worker per target**, up to the configured maximum of 10 per run. Each request carries these three values, all of them required every time:
    - `target_repo` — the `owner/repo` slug from the target list
    - `policy_path` — the path of the policy file, e.g. `docs/policy/hello-world.md`
    - `tracker_id` — the tracker id from step 3
 
-   The general-purpose `dispatch_workflow` tool expects a different layout and is not the right fit for this step.
+   Two tools can do this and their argument layouts differ. `aw_policy_worker` is bound to the worker workflow already and takes the three values as its own arguments. The general-purpose `dispatch_workflow` tool instead targets workflow `aw-policy-worker` and carries the three values grouped inside its `inputs` argument, not alongside it.
 
 If there are more targets than the per-run maximum allows, take the first 10 alphabetically and note in the tracking issue which targets were deferred and that a re-run is needed.
 
