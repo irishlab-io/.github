@@ -92,6 +92,26 @@ safe-outputs:
     engine:
       id: copilot
       model: gpt-5.4
+    post-steps:
+      - name: Put the detection verdict on its own line
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          # The detection model sometimes appends its verdict to the end of a narration sentence,
+          # e.g. "...behavior in the agent output.THREAT_DETECTION_RESULT:{...}". The parser only
+          # matches the marker at the start of a line, so it reports "No THREAT_DETECTION_RESULT
+          # found", the conclusion degrades to warning, and the WTD3 warn policy silently aborts
+          # every non-reviewable safe output. Split the marker onto its own line before parsing.
+          log=/tmp/gh-aw/threat-detection/detection.log
+          [ -f "$log" ] || { echo "no detection log at $log; nothing to normalize"; exit 0; }
+          if grep -qE '.THREAT_DETECTION_RESULT:' "$log"; then
+            sed -i 's/\(.\)THREAT_DETECTION_RESULT:/\1\nTHREAT_DETECTION_RESULT:/g' "$log"
+            echo "Normalized: marker moved to the start of its own line"
+          else
+            echo "Marker already at line start (or absent); no change"
+          fi
+          grep -n '^THREAT_DETECTION_RESULT:' "$log" | head -1 || echo "note: no line-start marker present after normalization"
     steps:
       - name: Materialize Copilot CLI at the sandbox spawn path
         shell: bash

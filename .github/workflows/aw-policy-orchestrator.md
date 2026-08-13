@@ -70,6 +70,26 @@ safe-outputs:
     engine:
       id: copilot
       model: gpt-5.4
+    post-steps:
+      - name: Put the detection verdict on its own line
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          # The detection model sometimes appends its verdict to the end of a narration sentence,
+          # e.g. "...behavior in the agent output.THREAT_DETECTION_RESULT:{...}". The parser only
+          # matches the marker at the start of a line, so it reports "No THREAT_DETECTION_RESULT
+          # found", the conclusion degrades to warning, and the WTD3 warn policy silently aborts
+          # every non-reviewable safe output. Split the marker onto its own line before parsing.
+          log=/tmp/gh-aw/threat-detection/detection.log
+          [ -f "$log" ] || { echo "no detection log at $log; nothing to normalize"; exit 0; }
+          if grep -qE '.THREAT_DETECTION_RESULT:' "$log"; then
+            sed -i 's/\(.\)THREAT_DETECTION_RESULT:/\1\nTHREAT_DETECTION_RESULT:/g' "$log"
+            echo "Normalized: marker moved to the start of its own line"
+          else
+            echo "Marker already at line start (or absent); no change"
+          fi
+          grep -n '^THREAT_DETECTION_RESULT:' "$log" | head -1 || echo "note: no line-start marker present after normalization"
     steps:
       - name: Materialize Copilot CLI at the sandbox spawn path
         shell: bash
@@ -127,7 +147,13 @@ You are the **orchestrator** in an OrchestratorOps fan-out. You do not analyse a
    - `policy_path` — the path of the policy file, e.g. `docs/policy/hello-world.md`
    - `tracker_id` — the tracker id from step 3
 
-   Two tools can do this and their argument layouts differ. `aw_policy_worker` is bound to the worker workflow already and takes the three values as its own arguments. The general-purpose `dispatch_workflow` tool instead targets workflow `aw-policy-worker` and carries the three values grouped inside its `inputs` argument, not alongside it.
+   Two tools can do this and their argument layouts differ. `aw_policy_worker` is bound to the worker workflow already and takes the three values as its own arguments. The general-purpose `dispatch_workflow` tool instead targets workflow `aw-policy-worker` and carries the three values grouped inside its `inputs` argument, not alongside it. Its arguments for one target look like this:
+
+   ```json
+   {"workflow": "aw-policy-worker", "inputs": {"target_repo": "irishlab-io/example", "policy_path": "docs/policy/hello-world.md", "tracker_id": "policy-123"}}
+   ```
+
+   The three values sit inside `inputs`. Placing them at the top level alongside `workflow` sends a request with no inputs, which the API rejects.
 
 If there are more targets than the per-run maximum allows, take the first 10 alphabetically and note in the tracking issue which targets were deferred and that a re-run is needed.
 
