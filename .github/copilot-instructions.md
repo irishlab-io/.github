@@ -7,7 +7,7 @@ This is the `irishlab-io/.github` special repository. It manages organization-wi
 - **Reusable workflows** consumed by every org repo via `irishlab-io/.github/.github/workflows/reusable-*.yml@main`
 - **GitOps repo management** _(planned)_ — adding/modifying `repos/<name>.yml` triggers automated repository creation, configuration, and secret provisioning
 - **Org-wide standards** — rulesets (`.github/rulesets/*.json`), labels (`.github/labels.yml`), Renovate config, and Dependabot templates synced to all repos
-- **Curated AI tooling** — agents, instructions, skills, and agentic workflows under `.github/` (see `AGENTS.md`)
+- **Curated AI tooling** — agents, instructions, skills, and agentic workflows under `.github/` (see [AI Tooling Assets](#ai-tooling-assets))
 
 ## Commands
 
@@ -22,7 +22,7 @@ pre-commit run markdownlint --all-files
 # Update pre-commit hook versions
 pre-commit autoupdate
 
-# Compile agentic workflows after editing .github/aw/*.md
+# Compile agentic workflows after editing .github/workflows/aw-*.md
 gh aw compile
 ```
 
@@ -30,8 +30,7 @@ gh aw compile
 
 ### Repository Lifecycle (GitOps) — _planned_
 
-The following pipeline is the intended design; the `reusable-*` workflows named here are **not yet
-implemented**. Do not reference them from CI until they exist.
+The following pipeline is the intended design; the `reusable-*` workflows named here are **not yet implemented**. Do not reference them from CI until they exist.
 
 1. A contributor opens a **[Repo Request] issue** using the issue form (`.github/ISSUE_TEMPLATE/repo-request.yml`)
 2. `reusable-issue-to-repo.yml` auto-parses the form and opens a PR adding `repos/<name>.yml`
@@ -43,18 +42,16 @@ implemented**. Do not reference them from CI until they exist.
 | File | Triggers |
 |------|----------|
 | `branch.yml` | Push to `dev`, `feat/*`, `fix/*`, `rel/*` |
-| `pr.yml` | PRs targeting `main` |
-| `main.yml` | Push to `main` |
-| `cron.yml` | Daily schedule + manual dispatch |
-| `repo.yml` | Push to `main` changing `repos/*.yml` |
+| `pr.yml`     | PRs targeting `main` |
+| `main.yml`   | Push to `main` |
+| `cron.yml`   | Daily schedule + manual dispatch |
+| `repo.yml`   | Push to `main` changing `repos/*.yml` |
 
 All entry-point workflows delegate exclusively to `reusable-*.yml` via `workflow_call`.
 
 ### Reusable Workflows
 
-Reusable workflows **must** be named `reusable-*.yml` — the prefix is reserved for them so they
-are never confused with this repo's CI entry points or the `agentic-*` (`gh-aw`) workflows. They
-live in `.github/workflows/reusable-*.yml` and are referenced by other org repos as:
+Reusable workflows **must** be named `reusable-*.yml` — the prefix is reserved for them so they are never confused with this repo's CI entry points or the `aw-*` (`gh-aw`) workflows. They live in `.github/workflows/reusable-*.yml` and are referenced by other org repos as:
 
 ```yaml
 uses: irishlab-io/.github/.github/workflows/reusable-<name>.yml@main
@@ -72,6 +69,47 @@ Workflows that call the GitHub API use a GitHub App instead of `GITHUB_TOKEN`. R
     private-key: "${{ secrets.IRISHLAB_BOT_PRIVATE_KEY }}"
     owner: "${{ github.repository_owner }}"
 ```
+
+## AI Tooling Assets
+
+Everything an AI coding agent needs to work in this org lives under `.github/`, so it is discoverable from a single, GitHub-native location and shared to consuming repos.
+
+| Directory | What it holds |
+|-----------|---------------|
+| `.github/agents/` | Agent personas — role definitions to adopt for a task |
+| `.github/instructions/` | Scoped coding standards (`*.instructions.md`, `applyTo` frontmatter) |
+| `.github/skills/` | Skills — task procedures an agent invokes on demand |
+| `.github/workflows/aw-*.md` | Agentic workflows (`gh-aw`) that run in CI |
+
+### Agents (`.github/agents/`)
+
+| Agent | Use for |
+|-------|---------|
+| `code-reviewer` | General code review |
+| `coding-agent` | Implementing features/fixes end-to-end |
+| `security-analyst` | Security review and threat analysis |
+| `technical-writer` | Docs, READMEs, changelogs |
+| `terraform-reviewer` | Reviewing Terraform / IaC |
+| `test-engineer` | Writing and improving tests |
+
+### Skills (`.github/skills/`)
+
+Invoke a skill when its task matches. Highlights:
+
+- **Governance / AI**: `agentic-workflows`, `resolve-issue-pr`, `security-remediation`
+- **Git & GitHub**: `git-commit`, `git-flow-branch-creator`, `gh-cli`, `github-issues`
+- **Python**: `pytest-coverage`, `ruff-recursive-fix`, `python-mcp-server-generator`
+- **Refactoring**: `refactor`, `refactor-plan`, `refactor-method-complexity-reduce`, `review-and-refactor`
+- **Docker / supply chain**: `multi-stage-dockerfile`, `dependabot`, `dependency-track`, `gitguardian`
+- **Docs / misc**: `readme-blueprint-generator`, `repo-story-time`, `meeting-minutes`, `github-copilot-starter`
+
+Each skill is a `SKILL.md` (name + description frontmatter) with optional `references/` and
+`scripts/`. See a skill's own file for its procedure.
+
+### Asset Conventions
+
+- These assets are **org-neutral**: they describe *how* to work, not any single downstream app. Repo-specific grounding belongs in that repo's own instructions file.
+- Skills must not contain secrets, credentials, or references to private/other-org repositories.
 
 ## Key Conventions
 
@@ -125,4 +163,4 @@ File-type-specific instructions live in `.github/instructions/` with `applyTo` f
 - `best-practices-docker.instructions.md` — applies to `Dockerfile`, `docker-compose*.yml`
 - `best-practices-github-actions.instructions.md` — applies to `.github/workflows/*.yml`
 
-See `AGENTS.md` for the full catalogue of agents, instructions, and skills.
+The full set: `git-workflow`, `makefile`, `tool-shell`, `assist-code-review`, `assist-markdown`, `assist-security`, and `best-practices-*` for Docker, GitHub Actions, JavaScript, and Python, plus the `guideline-JPL_Coding_Standard_C` reference.

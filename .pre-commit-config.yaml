@@ -6,7 +6,7 @@ exclude: |
   (?x)^(
     \.pre-commit-config\.yaml$
   )
-fail_fast: false
+fail_fast: true
 default_stages:
   - pre-commit
 default_install_hook_types:
@@ -79,6 +79,9 @@ repos:
         args:
           - -c
           - .config/.yaml-lint.yml
+        exclude: |
+          (?x)
+          ^\.github/workflows/.*\.lock\.yml$
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
     hooks:
@@ -86,7 +89,6 @@ repos:
         name: "gh-action | lint: run actionlint"
         # gh-aw compiled artifacts (generated, DO NOT EDIT)
         exclude: |
-          (?x)^(
-            \.github/workflows/.*\.lock\.yml|
-            \.github/workflows/agentics-maintenance\.yml
-          )$
+          (?x)
+           ^\.github/workflows/.*\.lock\.yml$|
+           ^\.github/workflows/agentics-maintenance\.yml$

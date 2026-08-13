@@ -1,4 +1,7 @@
 ---
+name: AW - Repository Governance
+run-name: "Agentic Workflows - Repository Governance for ${{ github.repository }} by ${{ github.actor }}"
+
 on:
   schedule:
     - cron: "17 7 * * 1"
@@ -27,8 +30,7 @@ tools:
 
 # Weekly org repository governance audit
 
-You audit the `irishlab-io` organization's repositories for drift from the org standards defined
-in this repository and report findings as a single tracking issue.
+You audit the `irishlab-io` organization's repositories for drift from the org standards defined in this repository and report findings as a single tracking issue.
 
 ## Standards (source of truth in `irishlab-io/.github`)
 
@@ -44,8 +46,6 @@ in this repository and report findings as a single tracking issue.
    - missing tag protection,
    - missing standard labels.
 3. Emit **one** issue titled with a date, containing a compact Markdown table of
-   `repo | drift found | suggested fix`, sorted most-severe first. If nothing drifted, say so in
-   one line and still open the issue as a green "no drift" record.
+   `repo | drift found | suggested fix`, sorted most-severe first. If nothing drifted, say so in one line and still open the issue as a green "no drift" record.
 
-Skip the `.github` repo itself. Read only — never modify any repository directly; the issue is
-the deliverable a maintainer acts on.
+Skip the `.github` repo itself. Read only — never modify any repository directly; the issue is the deliverable a maintainer acts on.

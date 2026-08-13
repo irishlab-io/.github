@@ -14,9 +14,9 @@ tooling, and agentic workflows shared across every repo in the `irishlab-io` org
 | `.github/workflows/{branch,pr,main,cron,repo}.yml` | This repo's own CI entry points |
 | `.github/rulesets/` | Branch (`main.json`) and tag (`tag.json`) protection templates |
 | `.github/labels.yml` | Standard org labels synced to repos |
-| `.github/agents`, `.github/instructions`, `.github/skills` | Curated AI tooling — see [`AGENTS.md`](AGENTS.md) |
-| `.github/workflows/agentic-*.md` | Agentic workflows (`gh-aw`) — automated triage, governance, docs, deps |
-| `.github/aw/` | Shared `gh-aw` components and the action pin lockfile |
+| `.github/agents`, `.github/instructions`, `.github/skills` | Curated AI tooling — see [`.github/copilot-instructions.md`](.github/copilot-instructions.md) |
+| `.github/workflows/aw-*.md` | Agentic workflows (`gh-aw`) — automated triage, governance, docs, deps |
+| `.github/aw/` | The `gh-aw` action pin lockfile (`actions-lock.json`) |
 | `repos/` | GitOps repository definitions (`repos/<name>.yml`) _(planned pipeline)_ |
 | `profile/README.md` | Public org profile shown on github.com/irishlab-io |
 | `docs/` | Long-form reference documentation |
@@ -61,5 +61,5 @@ A minor variation of Gitflow:
 
 ## AI tooling
 
-See [`AGENTS.md`](AGENTS.md) for the curated agents, instructions, and skills, and
-`.github/aw/` for the agentic workflows that run in CI.
+See [`.github/copilot-instructions.md`](.github/copilot-instructions.md) for the curated agents,
+instructions, and skills, and `.github/workflows/aw-*.md` for the agentic workflows that run in CI.
