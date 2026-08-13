@@ -18,23 +18,42 @@ on:
         required: true
         type: string
 
+engine:
+  id: copilot
+
 permissions:
   contents: read
   issues: read
   pull-requests: read
   copilot-requests: write
 
-model: gpt-5.4-mini
+pre-agent-steps:
+  - name: Ensure Copilot CLI exists at the path the sandbox spawns
+    shell: bash
+    run: |
+      set -euo pipefail
+      if [ -x /usr/local/bin/copilot ]; then
+        echo "/usr/local/bin/copilot already present - nothing to do"
+        exit 0
+      fi
+      resolved="$(command -v copilot || true)"
+      if [ -z "$resolved" ]; then
+        echo "::error::copilot CLI not found on PATH"
+        exit 1
+      fi
+      echo "Installing wrapper: /usr/local/bin/copilot -> ${resolved}"
+      wrapper="$(mktemp)"
+      printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$resolved" > "$wrapper"
+      sudo install -m 0755 "$wrapper" /usr/local/bin/copilot
+      rm -f "$wrapper"
+      /usr/local/bin/copilot --version
 
-engine:
-  id: copilot
+model: gpt-5.4-mini
 
 network:
   allowed:
     - defaults
 
-# The architect agent is delivered as an ambient folder rather than an `imports:` entry: it is
-# restored into $GITHUB_WORKSPACE before the agent runs, and step 0 of the prompt reads it.
 ambient-folders:
   - .github/agents
 
@@ -50,15 +69,14 @@ github-app:
 
 safe-outputs:
   create-issue:
-    target-repo: "*"
+    max: 1
+    title-prefix: "[policy] "
     allowed-repos:
       - irishlab-io/http-micro-server
       - irishlab-io/ibc
       - irishlab-io/pyquiz
       - irishlab-io/yul-agentic
-    max: 1
-    title-prefix: "[policy] "
-    labels: [type:maintenance]
+    target-repo: "*"
 
 timeout-minutes: 15
 
