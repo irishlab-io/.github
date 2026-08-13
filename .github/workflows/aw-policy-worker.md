@@ -21,6 +21,10 @@ on:
 engine:
   id: copilot
 
+# Required by `private-to-public-flows: allow` below, which gh-aw rejects under strict mode.
+# This also relaxes gh-aw's other strict-mode validations for this workflow.
+strict: false
+
 # No pull-requests permission: the irishlab-bot App installation grants no pull_requests
 # scope, so requesting it makes the App token mint fail with 422. This worker never reads PRs.
 permissions:
@@ -160,14 +164,16 @@ timeout-minutes: 15
 
 tools:
   github:
-    # Because irishlab-io/.github is public, gh-aw auto-enables a cross-visibility guard that
-    # refuses to let repository content reach the safe-outputs sink ("DIFC Violation: Resource
-    # 'noop resource (no restrictions)' has lower integrity than agent requires"), which blocks
-    # the worker from filing its finding at all. Exempt only the safeoutputs sink; this selective
-    # form stays compatible with strict mode, and a finding about a repo is filed into that same
-    # repo, so private content never crosses into a less private one.
-    private-to-public-flows:
-      - github
+    # Because irishlab-io/.github is public, gh-aw auto-enables a cross-visibility guard
+    # (FORCED REPOS=PUBLIC) that refuses to let repository content reach the safe-outputs sink:
+    # "DIFC Violation: Resource 'noop resource (no restrictions)' has lower integrity than agent
+    # requires". It blocked create_issue on every attempt, so the worker could never file a
+    # finding. The guard is session-level, so the selective per-server list form does not lift it
+    # -- only the blanket opt-out does, and gh-aw rejects that under strict mode, hence
+    # `strict: false` above. A finding about a repository is filed into that same repository, so
+    # content still never crosses into a less private one. Revisit if this pipeline moves to a
+    # private repo, where the guard would not fire at all.
+    private-to-public-flows: allow
     github-app:
       client-id: ${{ secrets.IRISHLAB_BOT_APP_ID }}
       private-key: ${{ secrets.IRISHLAB_BOT_PRIVATE_KEY }}
