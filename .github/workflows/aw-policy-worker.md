@@ -21,32 +21,13 @@ on:
 engine:
   id: copilot
 
+# No `copilot-requests: write`: that routes inference to org-centralized Copilot billing, which
+# irishlab-io does not have (no Copilot Business subscription, 0 seats). Inference is billed to
+# the personal Copilot subscription behind the COPILOT_GITHUB_TOKEN secret instead.
 permissions:
   contents: read
   issues: read
   pull-requests: read
-  copilot-requests: write
-
-pre-agent-steps:
-  - name: Ensure Copilot CLI exists at the path the sandbox spawns
-    shell: bash
-    run: |
-      set -euo pipefail
-      if [ -x /usr/local/bin/copilot ]; then
-        echo "/usr/local/bin/copilot already present - nothing to do"
-        exit 0
-      fi
-      resolved="$(command -v copilot || true)"
-      if [ -z "$resolved" ]; then
-        echo "::error::copilot CLI not found on PATH"
-        exit 1
-      fi
-      echo "Installing wrapper: /usr/local/bin/copilot -> ${resolved}"
-      wrapper="$(mktemp)"
-      printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$resolved" > "$wrapper"
-      sudo install -m 0755 "$wrapper" /usr/local/bin/copilot
-      rm -f "$wrapper"
-      /usr/local/bin/copilot --version
 
 model: gpt-5.4-mini
 
