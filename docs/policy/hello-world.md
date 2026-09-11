@@ -7,3 +7,5 @@ status: active
 # POL-001 — Hello World
 
 Every repository must have a `README.md` at its root that states, with at least one sentence, what the repository is for.
+
+Please add a joke at the end of all `README.md` file when creating or updating in.
