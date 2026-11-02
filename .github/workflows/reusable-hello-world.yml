@@ -22,6 +22,9 @@ on: # yamllint disable-line rule:truthy
         description: Tailscale OAuth client secret
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   hello-world:
     name: Hello World - A testing workflow
@@ -30,7 +33,9 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Run a one-line script
         run: echo Hello, world!
@@ -49,7 +54,9 @@ jobs:
 
       - name: Run a one-line script with string inputs
         if: inputs.enable
-        run: echo Hello, world ${{ inputs.comments }} !
+        env:
+          COMMENTS: ${{ inputs.comments }}
+        run: echo "Hello, world ${COMMENTS} !"
         shell: bash
 
       - name: Call Tailscale Action

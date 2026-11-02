@@ -23,6 +23,9 @@ on: # yamllint disable-line rule:truthy
         description: SonarQube Host URL
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   sonarqube:
     name: Sonarqube Scan
@@ -31,9 +34,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Call Tailscale Action
         id: tailscale
@@ -49,14 +53,14 @@ jobs:
         shell: bash
 
       - name: Run SAST - SonarQube
-        uses: SonarSource/sonarqube-scan-action@2500896589ef8f7247069a56136f8dc177c27ccf # v5.2.0
+        uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8.4.0
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
 
       - name: Quality gating SAST - SonarQube
         if: ${{ inputs.gating }}
-        uses: SonarSource/sonarqube-quality-gate-action@cf038b0e0cdecfa9e56c198bbb7d21d751d62c3b # v1.2.0
+        uses: SonarSource/sonarqube-quality-gate-action@7a5fffe8e523c40e0c740b6bc2712ab503e52efa # v1.2.1
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}

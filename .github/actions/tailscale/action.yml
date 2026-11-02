@@ -19,7 +19,7 @@ runs:
   using: "composite"
   steps:
     - name: Connect to Tailnet
-      uses: tailscale/github-action@v4.1.1
+      uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
       with:
         oauth-client-id: ${{ inputs.ts-client-id }}
         oauth-secret: ${{ inputs.ts-client-secret }}

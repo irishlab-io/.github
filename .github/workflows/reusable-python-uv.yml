@@ -60,6 +60,9 @@ on: # yamllint disable-line rule:truthy
         required: false
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build & Unit Test (${{ matrix.os }}, py${{ matrix.python-version }})
@@ -73,10 +76,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install UV
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: ${{ inputs.uv-cache }}
           cache-dependency-glob: "uv.lock"
@@ -84,14 +89,17 @@ jobs:
 
       - name: Setup Python ${{ matrix.python-version }}
         id: setup-python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
+        env:
+          PYTEST_ENABLE: ${{ inputs.pytest-enable }}
+          PLAYWRIGHT_ENABLE: ${{ inputs.playwright-enable }}
         run: |
           uv sync --all-extras --dev --frozen
-          if [[ "${{ inputs.pytest-enable }}" == 'true' && "${{ inputs.playwright-enable }}" == 'true' ]]; then
+          if [[ "${PYTEST_ENABLE}" == 'true' && "${PLAYWRIGHT_ENABLE}" == 'true' ]]; then
             uv run playwright install --with-deps
           fi
         shell: bash
@@ -105,10 +113,10 @@ jobs:
       - name: Run Pytest
         if: ${{ inputs.pytest-enable }}
         id: pytest
+        env:
+          include_markers: ${{ inputs.pytest-marker-included }}
+          exclude_markers: ${{ inputs.pytest-marker-excluded }}
         run: |
-          include_markers='${{ inputs.pytest-marker-included }}'
-          exclude_markers='${{ inputs.pytest-marker-excluded }}'
-
           pytest_args=()
 
           if [[ -n "$include_markers" && -n "$exclude_markers" ]]; then

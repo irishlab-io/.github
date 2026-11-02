@@ -1,7 +1,7 @@
 # Hugo - Cloudflare Pages Deploy
 
 This document explains how to use the
-[`reusable-hugo-cloudflare.yml`](../../.github/workflows/reusable-hugo-cloudflare.yml)
+[`reusable-cloudflare-hugo.yml`](../../.github/workflows/reusable-cloudflare-hugo.yml)
 reusable workflow to automatically build a Hugo static site and deploy it to
 [Cloudflare Pages](https://pages.cloudflare.com/).
 
@@ -136,7 +136,7 @@ on:
 jobs:
   deploy:
     name: Deploy to Cloudflare Pages
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-cloudflare.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-cloudflare-hugo.yml@main
     with:
       cloudflare-project-name: my-blog
     secrets:
@@ -165,7 +165,7 @@ jobs:
   deploy-preview:
     name: Deploy Preview to Cloudflare Pages
     if: github.event_name == 'pull_request'
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-cloudflare.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-cloudflare-hugo.yml@main
     with:
       cloudflare-project-name: my-blog
       environment: staging
@@ -181,7 +181,7 @@ jobs:
   deploy-production:
     name: Deploy to Cloudflare Pages (Production)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-cloudflare.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-cloudflare-hugo.yml@main
     with:
       cloudflare-project-name: my-blog
       environment: production
@@ -259,7 +259,7 @@ When the zone for your custom domain is already in your Cloudflare account:
 ```yaml
 jobs:
   deploy:
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-cloudflare.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-cloudflare-hugo.yml@main
     with:
       cloudflare-project-name: my-blog
       custom-domain: blog.example.com
@@ -322,5 +322,5 @@ This ensures that only approved, merged code reaches your production site.
   rotation.
 - Store both secrets at the repository or organisation level — never
   hard-code them in workflow files.
-- The workflow requests only `contents: read` and `deployments: write`
-  GitHub permissions.
+- The workflow requests only `contents: read`. Cloudflare deploys use the
+  API token, not `GITHUB_TOKEN`, so no write scope is needed.

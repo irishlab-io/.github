@@ -21,7 +21,7 @@ Call this workflow from any repository where you want to enforce SHA pinning of 
 
 | Input | Description | Required | Default |
 |---|---|---|---|
-| `allowlist` | Newline-separated list of action owner prefixes that are exempt from pinning (e.g. internal org actions) | No | `"${{ github.repository_owner }}/"` |
+| `allowlist` | Newline-separated list of action owner prefixes that are exempt from pinning (e.g. internal org actions) | No | `${{ github.repository_owner }}/` (the calling repository's owner) |
 
 ### Secrets
 
@@ -36,5 +36,6 @@ jobs:
     uses: irishlab-io/.github/.github/workflows/reusable-gh-pin-actions.yml@main
     with:
       allowlist: |
-        "my-org/"
+        my-org/
+        another-org/some-action
 ```

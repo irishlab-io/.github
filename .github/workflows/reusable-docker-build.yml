@@ -105,18 +105,20 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up QEMU
         id: qemu
-        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Cache Docker layers
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             /tmp/.buildx-cache-app
@@ -127,7 +129,7 @@ jobs:
 
       - name: Login to GHCR
         if: inputs.ghcr-enable
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -135,7 +137,7 @@ jobs:
 
       - name: Docker meta
         id: docker_meta
-        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ inputs.image-names }}
           flavor: ${{ inputs.flavor-rules }}
@@ -143,7 +145,7 @@ jobs:
 
       - name: Docker Build and Push
         id: build_image
-        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           platforms: ${{ inputs.platforms }}
           context: ${{ inputs.context }}
@@ -160,7 +162,7 @@ jobs:
           sbom: true
 
       - name: Attest
-        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         if: github.event_name == 'pull_request' && inputs.attest-enable
         id: attest
         with:
@@ -169,7 +171,7 @@ jobs:
           push-to-registry: true
 
       - name: Find comment for image tags
-        uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
         if: github.event_name == 'pull_request' && inputs.comment-enable
         id: fc
         with:
@@ -197,6 +199,8 @@ jobs:
 
       - name: Find the primary image tag we just pushed, and output it
         id: image-tag
+        env:
+          IMAGE_TAG: ${{ steps.docker_meta.outputs.version }}
         run: |
-          # shellcheck disable=SC2086
-          echo "image-tag=${{ steps.docker_meta.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "image-tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+        shell: bash

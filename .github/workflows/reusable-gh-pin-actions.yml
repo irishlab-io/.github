@@ -5,11 +5,15 @@ on: # yamllint disable-line rule:truthy
   workflow_call:
     inputs:
       allowlist:
-        description: Three rules to (optionally) set for tag-rules, latest, prefix, and suffix
+        description: >
+          Newline-separated action prefixes exempt from SHA pinning. Defaults
+          to the calling repository's owner (e.g. "irishlab-io/").
         required: false
         type: string
-        default: |
-          "${{ github.repository_owner }}/"
+        default: ${{ github.repository_owner }}/
+
+permissions:
+  contents: read
 
 jobs:
   pinned-actions:
@@ -19,10 +23,11 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Ensure SHA pinned actions
-        uses: zgosalvez/github-actions-ensure-sha-pinned-actions@ca46236c6ce584ae24bc6283ba8dcf4b3ec8a066 # v5.0.4
+        uses: zgosalvez/github-actions-ensure-sha-pinned-actions@76ed8a4c86957c2d27d44bab47f172193149d926 # v5.0.11
         with:
-          allowlist: |
-            ${{ inputs.allowlist }}
+          allowlist: ${{ inputs.allowlist }}

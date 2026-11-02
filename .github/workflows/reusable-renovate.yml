@@ -52,6 +52,9 @@ on: # yamllint disable-line rule:truthy
         description: GitHub App private key (PEM) used by Renovate to authenticate
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   renovate:
     name: Renovate Dependency Update
@@ -60,18 +63,20 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Generate GitHub App Token
         id: generate-token
-        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           app-id: ${{ secrets.RENOVATE_APP_ID }}
           private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
       - name: Run Renovate
-        uses: renovatebot/github-action@83ec54fee49ab67d9cd201084c1ff325b4b462e4 # v46.1.10
+        uses: renovatebot/github-action@43b963bf5dd5e57f1f95c59765a018d782870211 # v46.3.11
         with:
           configurationFile: ${{ inputs.config_file }}
           token: ${{ steps.generate-token.outputs.token }}

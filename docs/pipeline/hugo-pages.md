@@ -1,6 +1,6 @@
 # Hugo Deploy to GitHub Pages
 
-The `reusable-hugo-ghpages` workflow builds a [Hugo](https://gohugo.io/)
+The `reusable-ghpages-hugo` workflow builds a [Hugo](https://gohugo.io/)
 static site and deploys it to [GitHub Pages](https://pages.github.com/)
 using the official GitHub Pages Actions.
 
@@ -87,7 +87,7 @@ permissions:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
 ```
 
 If you prefer not to grant these permissions workflow-wide, set them on
@@ -101,15 +101,16 @@ jobs:
       contents: read
       pages: write
       id-token: write
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
 ```
 
 ## Inputs
 
 | Input           | Description                                           | Required | Default    |
 | --------------- | ----------------------------------------------------- | -------- | ---------- |
-| `hugo-version`  | Hugo version to install, e.g. `0.147.0` or `latest`   | No       | `latest`   |
+| `hugo-version`  | Hugo version to install, e.g. `0.167.0` or `latest`   | No       | `0.167.0`  |
 | `hugo-extended` | Use Hugo extended (required for SCSS/SASS processing) | No       | `true`     |
+| `hugo-dir`      | Directory where the Hugo site is located              | No       | `.`        |
 | `publish-dir`   | Directory where Hugo outputs the built site           | No       | `./public` |
 | `hugo-args`     | Additional arguments passed to the `hugo` build       | No       | `--minify` |
 | `submodules`    | Submodule strategy: `true`, `false`, or `recursive`   | No       | `true`     |
@@ -128,9 +129,9 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
     with:
-      hugo-version: "0.147.0"
+      hugo-version: "0.167.0"
 ```
 
 ### Pass extra build arguments
@@ -139,7 +140,7 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
     with:
       hugo-args: "--minify --environment production"
 ```
@@ -150,7 +151,7 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
     with:
       submodules: "recursive"
 ```
@@ -161,7 +162,7 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
 
   notify:
     name: Print deployed URL
