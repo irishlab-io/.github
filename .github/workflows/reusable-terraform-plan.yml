@@ -132,6 +132,13 @@ jobs:
       - name: Post Plan Comment to PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          FMT_OUTCOME: ${{ steps.fmt.outcome }}
+          INIT_OUTCOME: ${{ steps.init.outcome }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+          PLAN_OUTCOME: ${{ steps.plan.outcome }}
+          TF_WORKDIR: ${{ inputs.working-directory }}
+          TF_ENVIRONMENT: ${{ inputs.environment }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -140,10 +147,10 @@ jobs:
 
             const statusIcon = (outcome) => outcome === 'success' ? '✅' : outcome === 'failure' ? '❌' : '⚠️';
 
-            const fmt      = '${{ steps.fmt.outcome }}';
-            const init     = '${{ steps.init.outcome }}';
-            const validate = '${{ steps.validate.outcome }}';
-            const plan     = '${{ steps.plan.outcome }}';
+            const fmt      = process.env.FMT_OUTCOME;
+            const init     = process.env.INIT_OUTCOME;
+            const validate = process.env.VALIDATE_OUTCOME;
+            const plan     = process.env.PLAN_OUTCOME;
 
             let planOutput = '';
             try {
@@ -157,8 +164,8 @@ jobs:
                            planOutput.substring(planOutput.length - maxLength);
             }
 
-            const workdir     = '${{ inputs.working-directory }}';
-            const environment = '${{ inputs.environment }}';
+            const workdir     = process.env.TF_WORKDIR;
+            const environment = process.env.TF_ENVIRONMENT;
             const envLabel    = environment ? ` (\`${environment}\`)` : '';
             const marker      = `<!-- tf-plan:${workdir} -->`;
 
@@ -182,7 +189,7 @@ jobs:
               '</details>',
               '',
               '> [!NOTE]',
-              `> Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\``,
+              `> Pusher: @${context.actor}, Action: \`${context.eventName}\`, Workflow: \`${context.workflow}\``,
             ];
             const body = lines.join('\n');
 

@@ -197,6 +197,8 @@ jobs:
 
       - name: Find the primary image tag we just pushed, and output it
         id: image-tag
+        env:
+          IMAGE_TAG: ${{ steps.docker_meta.outputs.version }}
         run: |
-          # shellcheck disable=SC2086
-          echo "image-tag=${{ steps.docker_meta.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "image-tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+        shell: bash

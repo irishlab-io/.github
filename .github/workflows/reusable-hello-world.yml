@@ -52,7 +52,9 @@ jobs:
 
       - name: Run a one-line script with string inputs
         if: inputs.enable
-        run: echo Hello, world ${{ inputs.comments }} !
+        env:
+          COMMENTS: ${{ inputs.comments }}
+        run: echo "Hello, world ${COMMENTS} !"
         shell: bash
 
       - name: Call Tailscale Action

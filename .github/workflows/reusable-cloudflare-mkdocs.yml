@@ -75,8 +75,10 @@ jobs:
 
       - name: Build MkDocs site
         working-directory: ${{ inputs.working-directory }}
+        env:
+          MKDOCS_SITE_DIR: ${{ inputs.mkdocs-site-dir }}
         run: |
-          uv run mkdocs build --strict --site-dir ${{ inputs.mkdocs-site-dir }}
+          uv run mkdocs build --strict --site-dir "${MKDOCS_SITE_DIR}"
         shell: bash
 
       - name: Deploy to Cloudflare Pages

@@ -92,9 +92,12 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
+        env:
+          PYTEST_ENABLE: ${{ inputs.pytest-enable }}
+          PLAYWRIGHT_ENABLE: ${{ inputs.playwright-enable }}
         run: |
           uv sync --all-extras --dev --frozen
-          if [[ "${{ inputs.pytest-enable }}" == 'true' && "${{ inputs.playwright-enable }}" == 'true' ]]; then
+          if [[ "${PYTEST_ENABLE}" == 'true' && "${PLAYWRIGHT_ENABLE}" == 'true' ]]; then
             uv run playwright install --with-deps
           fi
         shell: bash
@@ -108,10 +111,10 @@ jobs:
       - name: Run Pytest
         if: ${{ inputs.pytest-enable }}
         id: pytest
+        env:
+          include_markers: ${{ inputs.pytest-marker-included }}
+          exclude_markers: ${{ inputs.pytest-marker-excluded }}
         run: |
-          include_markers='${{ inputs.pytest-marker-included }}'
-          exclude_markers='${{ inputs.pytest-marker-excluded }}'
-
           pytest_args=()
 
           if [[ -n "$include_markers" && -n "$exclude_markers" ]]; then

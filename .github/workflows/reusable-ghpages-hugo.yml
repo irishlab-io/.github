@@ -77,9 +77,13 @@ jobs:
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Build Hugo site
+        env:
+          HUGO_DIR: ${{ inputs.hugo-dir }}
+          HUGO_ARGS: ${{ inputs.hugo-args }}
         run: |
-          cd ${{ inputs.hugo-dir }}
-          hugo ${{ inputs.hugo-args }}
+          cd "$HUGO_DIR"
+          read -r -a hugo_args <<< "$HUGO_ARGS"
+          hugo "${hugo_args[@]}"
         shell: bash
 
       - name: Upload Pages artifact

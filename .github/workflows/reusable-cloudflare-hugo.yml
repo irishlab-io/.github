@@ -133,9 +133,10 @@ jobs:
           hugo \
             --minify \
             --gc \
-            --destination "${{ inputs.publish-directory }}"
+            --destination "${PUBLISH_DIRECTORY}"
         shell: bash
         env:
+          PUBLISH_DIRECTORY: ${{ inputs.publish-directory }}
           HUGO_ENVIRONMENT: ${{ inputs.environment }}
           HUGO_ENV: ${{ inputs.environment }}
           TZ: UTC
