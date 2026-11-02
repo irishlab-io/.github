@@ -60,6 +60,9 @@ on: # yamllint disable-line rule:truthy
         required: false
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build & Unit Test (${{ matrix.os }}, py${{ matrix.python-version }})

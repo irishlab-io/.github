@@ -42,8 +42,6 @@ on: # yamllint disable-line rule:truthy
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -55,6 +53,10 @@ jobs:
     name: Hugo - Build
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+
+    permissions:
+      contents: read
+      pages: read
 
     steps:
 
@@ -90,6 +92,10 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+
+    permissions:
+      pages: write
+      id-token: write
 
     environment:
       name: github-pages

@@ -11,6 +11,9 @@ on: # yamllint disable-line rule:truthy
         default: |
           "${{ github.repository_owner }}/"
 
+permissions:
+  contents: read
+
 jobs:
   pinned-actions:
     name: Ensure SHA Pinned Actions

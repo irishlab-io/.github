@@ -12,6 +12,9 @@ on: # yamllint disable-line rule:truthy
         required: true
         description: Private key for the GitHub App
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
   cancel-in-progress: true

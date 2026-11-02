@@ -52,6 +52,9 @@ on: # yamllint disable-line rule:truthy
         description: GitHub App private key (PEM) used by Renovate to authenticate
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   renovate:
     name: Renovate Dependency Update

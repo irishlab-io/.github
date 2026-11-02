@@ -23,6 +23,9 @@ on: # yamllint disable-line rule:truthy
         description: SonarQube Host URL
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   sonarqube:
     name: Sonarqube Scan

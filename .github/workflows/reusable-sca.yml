@@ -19,6 +19,9 @@ on: # yamllint disable-line rule:truthy
         type: boolean
         default: false
 
+permissions:
+  contents: read
+
 jobs:
   generic:
     if: ${{ inputs.generic }}

@@ -11,6 +11,8 @@ on: # yamllint disable-line rule:truthy
         description: Tailscale OAuth Client Secret
         required: true
 
+permissions: {}
+
 jobs:
   tailscale:
     name: Connect to Tailscale

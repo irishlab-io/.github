@@ -322,5 +322,5 @@ This ensures that only approved, merged code reaches your production site.
   rotation.
 - Store both secrets at the repository or organisation level — never
   hard-code them in workflow files.
-- The workflow requests only `contents: read` and `deployments: write`
-  GitHub permissions.
+- The workflow requests only `contents: read`. Cloudflare deploys use the
+  API token, not `GITHUB_TOKEN`, so no write scope is needed.

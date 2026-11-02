@@ -88,7 +88,6 @@ on: # yamllint disable-line rule:truthy
 
 permissions:
   contents: read
-  deployments: write
 
 jobs:
 

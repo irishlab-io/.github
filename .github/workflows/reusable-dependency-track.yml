@@ -28,6 +28,9 @@ on: # yamllint disable-line rule:truthy
         description: Dependency-Track API Token
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   dependency-track:
     name: Dependency-Track Scan

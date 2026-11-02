@@ -11,6 +11,11 @@ on: # yamllint disable-line rule:truthy
         type: string
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   labeler:
     name: Run GH labler

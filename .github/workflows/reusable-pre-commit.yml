@@ -16,6 +16,9 @@ on: # yamllint disable-line rule:truthy
         type: string
 
 
+permissions:
+  contents: read
+
 jobs:
   pre-commit:
     name: Run pre-commit
