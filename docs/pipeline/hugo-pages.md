@@ -1,6 +1,6 @@
 # Hugo Deploy to GitHub Pages
 
-The `reusable-hugo-ghpages` workflow builds a [Hugo](https://gohugo.io/)
+The `reusable-ghpages-hugo` workflow builds a [Hugo](https://gohugo.io/)
 static site and deploys it to [GitHub Pages](https://pages.github.com/)
 using the official GitHub Pages Actions.
 
@@ -87,7 +87,7 @@ permissions:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
 ```
 
 If you prefer not to grant these permissions workflow-wide, set them on
@@ -101,7 +101,7 @@ jobs:
       contents: read
       pages: write
       id-token: write
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
 ```
 
 ## Inputs
@@ -129,7 +129,7 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
     with:
       hugo-version: "0.167.0"
 ```
@@ -140,7 +140,7 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
     with:
       hugo-args: "--minify --environment production"
 ```
@@ -151,7 +151,7 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
     with:
       submodules: "recursive"
 ```
@@ -162,7 +162,7 @@ jobs:
 jobs:
   hugo-deploy:
     name: Build and Deploy Hugo Site
-    uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-ghpages-hugo.yml@main
 
   notify:
     name: Print deployed URL

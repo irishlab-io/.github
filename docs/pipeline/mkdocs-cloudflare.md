@@ -5,7 +5,7 @@ hide:
 
 # MkDocs to Cloudflare Pages Deployment
 
-The `reusable-mkdocs-cloudflare.yml` workflow builds a [MkDocs](https://www.mkdocs.org/)
+The `reusable-cloudflare-mkdocs.yml` workflow builds a [MkDocs](https://www.mkdocs.org/)
 documentation site and deploys it to [Cloudflare Pages](https://pages.cloudflare.com/).
 
 ## Prerequisites
@@ -64,7 +64,7 @@ Reference the workflow from any repository within the organization:
 jobs:
   docs:
     name: Deploy Documentation
-    uses: irishlab-io/.github/.github/workflows/reusable-mkdocs-cloudflare.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-cloudflare-mkdocs.yml@main
     with:
       cloudflare-project-name: my-docs-project
     secrets:
@@ -107,7 +107,7 @@ on:
 jobs:
   deploy-docs:
     name: Deploy MkDocs to Cloudflare Pages
-    uses: irishlab-io/.github/.github/workflows/reusable-mkdocs-cloudflare.yml@main
+    uses: irishlab-io/.github/.github/workflows/reusable-cloudflare-mkdocs.yml@main
     with:
       cloudflare-project-name: my-org-docs
       python-version: "3.14"

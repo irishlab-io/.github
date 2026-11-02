@@ -12,7 +12,7 @@ name: Reusable - Hugo Deploy to Cloudflare Pages
 # Typical caller usage:
 #   jobs:
 #     deploy:
-#       uses: irishlab-io/.github/.github/workflows/reusable-hugo-cloudflare.yml@main
+#       uses: irishlab-io/.github/.github/workflows/reusable-cloudflare-hugo.yml@main
 #       with:
 #         cloudflare-project-name: my-blog
 #       secrets:
