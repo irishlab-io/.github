@@ -5,9 +5,11 @@ on: # yamllint disable-line rule:truthy
   workflow_call:
     inputs:
       hugo-version:
-        description: Hugo version to install (e.g. "0.147.0" or "latest")
+        description: >
+          Hugo version to install (e.g. "0.167.0" or "latest"). Defaults to a
+          pinned release so builds are reproducible; pass "latest" to opt out.
         required: false
-        default: latest
+        default: "0.167.0"
         type: string
       hugo-extended:
         description: Use Hugo extended edition (required for SCSS/SASS support)
@@ -72,6 +74,16 @@ jobs:
           hugo-version: ${{ inputs.hugo-version }}
           extended: ${{ inputs.hugo-extended }}
 
+      - name: Cache Hugo resources
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ${{ runner.temp }}/hugo_cache
+            ${{ inputs.hugo-dir }}/resources
+          key: hugo-${{ runner.os }}-${{ inputs.hugo-version }}-${{ github.run_id }}
+          restore-keys: |
+            hugo-${{ runner.os }}-${{ inputs.hugo-version }}-
+
       - name: Configure GitHub Pages
         id: pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
@@ -80,6 +92,7 @@ jobs:
         env:
           HUGO_DIR: ${{ inputs.hugo-dir }}
           HUGO_ARGS: ${{ inputs.hugo-args }}
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
         run: |
           cd "$HUGO_DIR"
           read -r -a hugo_args <<< "$HUGO_ARGS"

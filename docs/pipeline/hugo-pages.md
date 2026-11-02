@@ -108,8 +108,9 @@ jobs:
 
 | Input           | Description                                           | Required | Default    |
 | --------------- | ----------------------------------------------------- | -------- | ---------- |
-| `hugo-version`  | Hugo version to install, e.g. `0.147.0` or `latest`   | No       | `latest`   |
+| `hugo-version`  | Hugo version to install, e.g. `0.167.0` or `latest`   | No       | `0.167.0`  |
 | `hugo-extended` | Use Hugo extended (required for SCSS/SASS processing) | No       | `true`     |
+| `hugo-dir`      | Directory where the Hugo site is located              | No       | `.`        |
 | `publish-dir`   | Directory where Hugo outputs the built site           | No       | `./public` |
 | `hugo-args`     | Additional arguments passed to the `hugo` build       | No       | `--minify` |
 | `submodules`    | Submodule strategy: `true`, `false`, or `recursive`   | No       | `true`     |
@@ -130,7 +131,7 @@ jobs:
     name: Build and Deploy Hugo Site
     uses: irishlab-io/.github/.github/workflows/reusable-hugo-ghpages.yml@main
     with:
-      hugo-version: "0.147.0"
+      hugo-version: "0.167.0"
 ```
 
 ### Pass extra build arguments
