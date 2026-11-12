@@ -29,6 +29,11 @@ repos:
     hooks:
       - id: ggshield
         name: "security | scan for secrets"
+  - repo: https://github.com/pypa/pip-audit
+    rev: v2.10.0
+    hooks:
+      - id: pip-audit
+        name: "security | scan for vulnerabilities"
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
